@@ -1,16 +1,16 @@
 {
-  "name": "mks2508/core",
-  "version": "0.0.1",
-  "description": "Telegram Bot management in Typescript, w/ GramJS / telegraf. Automates bot creation and management, bot and groups setups, etc. used y mks-scaffolder (telegram template) and mks2508-bot-father",
+  "name": "mks2508/main",
+  "version": "0.1.0",
+  "description": "Telegram Bot management library - automates bot creation via BotFather, groups/forums setup, and topics management using GramJS MTProto",
   "type": "module",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "types": "./src/index.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "types": "./src/index.ts",
+      "bun": "./src/index.ts",
+      "import": "./src/index.ts"
     },
     "./package.json": "./package.json"
   },
@@ -26,10 +26,17 @@
     "test": "bun test"
   },
   "dependencies": {
-    "mks2508/utils": "workspace:*"
+    "mks2508/utils": "workspace:*",
+    "telegram": "^2.26.16",
+    "telegraf": "^4.16.3",
+    "big-integer": "^1.6.52",
+    "zod": "^3.24.0",
+    "@inquirer/prompts": "^7.5.3",
+    "chalk": "^5.4.1"
   },
   "devDependencies": {
     "@types/node": "^22.10.5",
+    "@types/big-integer": "^0.0.31",
     "rolldown": "^1.0.0-beta.58"
   },
   "engines": {

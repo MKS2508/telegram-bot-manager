@@ -1,23 +1,17 @@
-import { greet, createGreeter } from 'mks2508/core';
-import { createLogger } from 'mks2508/utils/logger';
+import { EnvManager, type IConfiguredBot } from 'mks2508/main'
+import { createLogger } from 'mks2508/utils'
 
-const log = createLogger('Example');
+const log = createLogger('Example')
 
-log.info('Starting example app...');
+log.info('Starting telegram-bot-manager example...')
 
-// Simple greeting
-const result = greet('World');
+// List configured bots
+const envManager = new EnvManager()
+const bots: IConfiguredBot[] = envManager.listBots()
 
-if (result.isOk()) {
-  log.success(result.value);
-}
+log.info(`Found ${bots.length} configured bots:`)
+bots.forEach((bot: IConfiguredBot) => {
+  log.info(`  - @${bot.username} ${bot.isActive ? '(active)' : ''}`)
+})
 
-// Custom greeter
-const spanishGreeter = createGreeter({ prefix: 'Hola' });
-const spanishResult = spanishGreeter('Mundo');
-
-if (spanishResult.isOk()) {
-  log.success(spanishResult.value);
-}
-
-log.info('Example completed!');
+log.info('Example completed!')

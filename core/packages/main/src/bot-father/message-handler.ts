@@ -5,7 +5,6 @@ import { EditedMessage } from 'telegram/events/EditedMessage'
 import { messageLogger, debug } from './logger.js'
 
 export class MessageHandler {
-  private lastMessage: Message | null = null
   private messageHandlerRef: any = null
   private resolveResponse: ((message: Message) => void) | null = null
   private messageHandler: ((message: Message) => void) | null = null
@@ -40,7 +39,6 @@ export class MessageHandler {
       debug(messageLogger, `Received message id=${msgId}: "${msgText}..."`)
 
       this.messageBuffer.push(event)
-      this.lastMessage = event
 
       if (this.resolveResponse) {
         debug(messageLogger, `Resolving pending promise with message id=${msgId}`)
@@ -84,7 +82,6 @@ export class MessageHandler {
     }
 
     this.messageHandler = null
-    this.lastMessage = null
     this.resolveResponse = null
     this.messageBuffer = []
     this.isListening = false

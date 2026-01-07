@@ -1,41 +1,12 @@
 import { existsSync, readFileSync, writeFileSync, unlinkSync, readdirSync, mkdirSync, statSync, readlinkSync } from 'fs'
-import { dirname, resolve, join } from 'path'
+import { resolve } from 'path'
 import { symlink } from 'fs/promises'
-import { Environment, type EnvConfig } from '../../../core/src/config/env.js'
+import { Environment, type IBotMetadata, type IConfiguredBot, type IEnvConfig, type IMigrationResult } from './types/index.js'
 
-/**
- * Bot configuration metadata
- */
-export interface BotMetadata {
-  username: string
-  name: string
-  createdAt: string
-  updatedAt: string
-  createdBy?: string
-  environments: Environment[]
-  description?: string
-  tags?: string[]
-}
-
-/**
- * Configured bot information
- */
-export interface ConfiguredBot {
-  username: string
-  hasLocal: boolean
-  hasStaging: boolean
-  hasProduction: boolean
-  isActive: boolean
-  metadata: BotMetadata | null
-}
-
-/**
- * Migration result
- */
-export interface MigrationResult {
-  success: boolean
-  migrated: string[]
-  errors?: string[]
+export type {
+  IBotMetadata as BotMetadata,
+  IConfiguredBot as ConfiguredBot,
+  IMigrationResult as MigrationResult,
 }
 
 /**
@@ -72,7 +43,7 @@ export class EnvManager {
   /**
    * List all configured bots
    */
-  listBots(): ConfiguredBot[] {
+  listBots(): IConfiguredBot[] {
     if (!existsSync(this.envsDir)) {
       return []
     }
@@ -162,7 +133,7 @@ export class EnvManager {
   async createEnv(
     botUsername: string,
     environment: Environment,
-    config: Partial<EnvConfig>
+    config: Partial<IEnvConfig>
   ): Promise<void> {
     this.createBotDirectory(botUsername)
 
@@ -183,7 +154,7 @@ export class EnvManager {
   /**
    * Read .env file for bot + environment
    */
-  async readEnv(botUsername: string, environment: Environment): Promise<Partial<EnvConfig>> {
+  async readEnv(botUsername: string, environment: Environment): Promise<Partial<IEnvConfig>> {
     const envPath = this.getEnvPath(botUsername, environment)
 
     if (!existsSync(envPath)) {
@@ -200,11 +171,11 @@ export class EnvManager {
   async updateEnv(
     botUsername: string,
     environment: Environment,
-    updates: Partial<EnvConfig>
+    updates: Partial<IEnvConfig>
   ): Promise<void> {
     const envPath = this.getEnvPath(botUsername, environment)
 
-    let currentConfig: Partial<EnvConfig> = {}
+    let currentConfig: Partial<IEnvConfig> = {}
     if (existsSync(envPath)) {
       currentConfig = await this.readEnv(botUsername, environment)
     }
@@ -267,8 +238,8 @@ export class EnvManager {
   /**
    * Migrate old .env.{environment} to .envs structure
    */
-  async migrateOldEnvs(): Promise<MigrationResult> {
-    const result: MigrationResult = {
+  async migrateOldEnvs(): Promise<IMigrationResult> {
+    const result: IMigrationResult = {
       success: true,
       migrated: [],
       errors: [],
@@ -330,7 +301,7 @@ export class EnvManager {
   /**
    * Get bot metadata
    */
-  getMetadata(botUsername: string): BotMetadata | null {
+  getMetadata(botUsername: string): IBotMetadata | null {
     const metadataPath = resolve(this.envsDir, botUsername, 'metadata.json')
 
     if (!existsSync(metadataPath)) {
@@ -339,7 +310,7 @@ export class EnvManager {
 
     try {
       const content = readFileSync(metadataPath, 'utf-8')
-      return JSON.parse(content) as BotMetadata
+      return JSON.parse(content) as IBotMetadata
     } catch {
       return null
     }
@@ -348,7 +319,7 @@ export class EnvManager {
   /**
    * Update bot metadata
    */
-  async updateMetadata(botUsername: string, metadata: Partial<BotMetadata>): Promise<void> {
+  async updateMetadata(botUsername: string, metadata: Partial<IBotMetadata>): Promise<void> {
     this.createBotDirectory(botUsername)
 
     const metadataPath = resolve(this.envsDir, botUsername, 'metadata.json')
@@ -362,7 +333,7 @@ export class EnvManager {
   /**
    * Create default metadata for a bot
    */
-  private createDefaultMetadata(botUsername: string): BotMetadata {
+  private createDefaultMetadata(botUsername: string): IBotMetadata {
     return {
       username: botUsername,
       name: botUsername.replace(/bot$/, '').replace(/_/g, ' ').replace(/-/g, ' '),
@@ -375,7 +346,7 @@ export class EnvManager {
   /**
    * Convert config object to .env string format
    */
-  private configToEnvString(config: Partial<EnvConfig>): string {
+  private configToEnvString(config: Partial<IEnvConfig>): string {
     const lines: string[] = []
 
     if (config.botToken) lines.push(`TG_BOT_TOKEN=${config.botToken}`)
@@ -408,8 +379,8 @@ export class EnvManager {
   /**
    * Parse .env string to config object
    */
-  private envStringToConfig(content: string): Partial<EnvConfig> {
-    const config: Partial<EnvConfig> = {}
+  private envStringToConfig(content: string): Partial<IEnvConfig> {
+    const config: Partial<IEnvConfig> = {}
     const lines = content.split('\n')
 
     for (const line of lines) {

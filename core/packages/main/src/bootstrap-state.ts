@@ -1,117 +1,43 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync, unlinkSync } from 'fs'
 import { resolve, dirname } from 'path'
 import type { BootstrapClient } from './client.js'
-import type { BotFatherManager, BotInfo } from './bot-father/index.js'
-import type { GroupManager } from './group-manager.js'
-import type { TopicManager } from './topic-manager.js'
-import type { EnvManager } from './env-manager.js'
-import type { Environment } from '../../../core/src/config/env.js'
-import { input, select, confirm } from '@inquirer/prompts'
+import type { BotFatherManager } from './bot-father/index.js'
+import { select, confirm } from '@inquirer/prompts'
 import chalk from 'chalk'
+import type {
+  Environment,
+  IBotInfo,
+  IExistingBotConfig,
+  IBotSelection,
+  IGroupInfo,
+  IGroupSelection,
+  ITopicInfo,
+  ITopicsSelection,
+  IBootstrapSessionState,
+  BootstrapStep,
+} from './types/index.js'
 
-/**
- * Existing bot configuration detected from .env
- */
-export interface ExistingBotConfig {
-  botUsername: string
-  botToken: string
-  environment: Environment
-  controlChatId?: string
-  controlTopicId?: number
-  logChatId?: string
-  logTopicId?: number
+export type {
+  IExistingBotConfig as ExistingBotConfig,
+  IBotSelection as BotSelection,
+  IGroupInfo as GroupInfo,
+  IGroupSelection as GroupSelection,
+  ITopicInfo as TopicInfo,
+  ITopicsSelection as TopicsSelection,
+  IBootstrapSessionState as BootstrapSessionState,
+  BootstrapStep,
 }
-
-/**
- * Bot selection result
- */
-export interface BotSelection {
-  action: 'create' | 'reuse' | 'cancel'
-  botInfo?: BotInfo
-  botUsername?: string
-}
-
-/**
- * Group information
- */
-export interface GroupInfo {
-  id: number
-  title: string
-  username?: string
-  type: 'supergroup' | 'channel'
-  isForum: boolean
-  memberCount?: number
-}
-
-/**
- * Group selection result
- */
-export interface GroupSelection {
-  action: 'create' | 'reuse' | 'skip'
-  groupInfo?: GroupInfo
-  chatId?: number
-}
-
-/**
- * Topic information
- */
-export interface TopicInfo {
-  id: number
-  name: string
-  iconColor?: number
-}
-
-/**
- * Topics selection result
- */
-export interface TopicsSelection {
-  action: 'reuse' | 'recreate_all' | 'create_missing' | 'delete_duplicates' | 'skip'
-  topics?: TopicInfo[]
-}
-
-/**
- * Bootstrap session state
- */
-export interface BootstrapSessionState {
-  sessionId: string
-  startTime: string
-  step: BootstrapStep
-  botSelection: BotSelection | null
-  groupSelection: GroupSelection | null
-  topicsSelection: TopicsSelection | null
-  environment: Environment
-  apiCredentials?: {
-    apiId: number
-    apiHash: string
-  }
-}
-
-/**
- * Bootstrap step
- */
-export type BootstrapStep =
-  | 'init'
-  | 'bot_selection'
-  | 'group_selection'
-  | 'topics_selection'
-  | 'creating_bot'
-  | 'creating_group'
-  | 'creating_topics'
-  | 'updating_env'
-  | 'complete'
 
 /**
  * Bootstrap state manager
  */
 export class BootstrapState {
-  private state: BootstrapSessionState | null = null
+  private state: IBootstrapSessionState | null = null
   private statePath: string
-  private readonly envManager: EnvManager
 
-  constructor(options?: { stateDir?: string; envManager?: EnvManager }) {
+  constructor(options?: { stateDir?: string }) {
     const baseDir = options?.stateDir ?? resolve(process.cwd(), 'core', 'tmp')
     this.statePath = resolve(baseDir, 'bootstrap-state.json')
-    this.envManager = options?.envManager ?? (null as unknown as EnvManager)
 
     // Ensure state directory exists
     if (!existsSync(dirname(this.statePath))) {
@@ -148,7 +74,7 @@ export class BootstrapState {
   /**
    * Detect existing bot from current .env
    */
-  detectExistingBot(): ExistingBotConfig | null {
+  detectExistingBot(): IExistingBotConfig | null {
     const env = process.env
 
     if (!env.TG_BOT_TOKEN) {
@@ -164,7 +90,7 @@ export class BootstrapState {
   /**
    * Fetch available bots from BotFather
    */
-  async fetchAvailableBots(client: BootstrapClient, botFather: BotFatherManager): Promise<BotInfo[]> {
+  async fetchAvailableBots(_client: BootstrapClient, botFather: BotFatherManager): Promise<IBotInfo[]> {
     const result = await botFather.listBots()
 
     if (!result.success || !result.bots) {
@@ -178,9 +104,9 @@ export class BootstrapState {
    * Prompt for bot selection
    */
   async promptBotSelection(
-    availableBots: BotInfo[],
-    currentBot?: ExistingBotConfig | null
-  ): Promise<BotSelection> {
+    availableBots: IBotInfo[],
+    currentBot?: IExistingBotConfig | null
+  ): Promise<IBotSelection> {
     console.log('')
     console.log(chalk.cyan.bold('🤖 Bot Selection'))
 
@@ -270,7 +196,7 @@ export class BootstrapState {
   /**
    * Prompt for group selection
    */
-  async promptGroupSelection(existingGroups: GroupInfo[]): Promise<GroupSelection> {
+  async promptGroupSelection(existingGroups: IGroupInfo[]): Promise<IGroupSelection> {
     console.log('')
     console.log(chalk.cyan.bold('💬 Group Selection'))
 
@@ -324,7 +250,7 @@ export class BootstrapState {
   /**
    * Prompt for topics selection
    */
-  async promptTopicsSelection(existingTopics: TopicInfo[]): Promise<TopicsSelection> {
+  async promptTopicsSelection(existingTopics: ITopicInfo[]): Promise<ITopicsSelection> {
     console.log('')
     console.log(chalk.cyan.bold('📝 Topics Selection'))
 
@@ -424,14 +350,14 @@ export class BootstrapState {
   /**
    * Load bootstrap state
    */
-  async loadState(): Promise<BootstrapSessionState | null> {
+  async loadState(): Promise<IBootstrapSessionState | null> {
     if (!existsSync(this.statePath)) {
       return null
     }
 
     try {
       const content = readFileSync(this.statePath, 'utf-8')
-      this.state = JSON.parse(content) as BootstrapSessionState
+      this.state = JSON.parse(content) as IBootstrapSessionState
       return this.state
     } catch {
       return null
@@ -452,7 +378,7 @@ export class BootstrapState {
   /**
    * Get current state
    */
-  getState(): BootstrapSessionState | null {
+  getState(): IBootstrapSessionState | null {
     return this.state
   }
 
@@ -469,7 +395,7 @@ export class BootstrapState {
   /**
    * Update bot selection
    */
-  updateBotSelection(selection: BotSelection): void {
+  updateBotSelection(selection: IBotSelection): void {
     if (!this.state) {
       throw new Error('No active session')
     }
@@ -479,7 +405,7 @@ export class BootstrapState {
   /**
    * Update group selection
    */
-  updateGroupSelection(selection: GroupSelection): void {
+  updateGroupSelection(selection: IGroupSelection): void {
     if (!this.state) {
       throw new Error('No active session')
     }
@@ -489,7 +415,7 @@ export class BootstrapState {
   /**
    * Update topics selection
    */
-  updateTopicsSelection(selection: TopicsSelection): void {
+  updateTopicsSelection(selection: ITopicsSelection): void {
     if (!this.state) {
       throw new Error('No active session')
     }

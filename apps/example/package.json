@@ -10,7 +10,7 @@
     "start": "bun run dist/index.js"
   },
   "dependencies": {
-    "mks2508/core": "workspace:*",
+    "mks2508/main": "workspace:*",
     "mks2508/utils": "workspace:*"
   },
   "devDependencies": {

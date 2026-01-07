@@ -33,7 +33,7 @@ export class BotFatherManager {
   private messageHandler: MessageHandler
   private buttonHandler: ButtonHandler
 
-  constructor(private client: BootstrapClient) {
+  constructor(client: BootstrapClient) {
     this.messageHandler = new MessageHandler(client, this.botFatherUsername)
     this.buttonHandler = new ButtonHandler(client, this.botFatherUsername)
   }

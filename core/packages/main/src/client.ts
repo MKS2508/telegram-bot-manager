@@ -1,6 +1,5 @@
 import { TelegramClient } from 'telegram'
 import { StringSession } from 'telegram/sessions'
-import { NewMessage } from 'telegram/events'
 import { input } from '@inquirer/prompts'
 import bigInt, { type BigInteger } from 'big-integer'
 import * as fs from 'fs'
