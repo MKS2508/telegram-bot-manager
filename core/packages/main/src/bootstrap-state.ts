@@ -15,6 +15,7 @@ import type {
   ITopicsSelection,
   IBootstrapSessionState,
   BootstrapStep,
+  IConfiguredBot,
 } from './types/index.js'
 
 export type {
@@ -102,9 +103,16 @@ export class BootstrapState {
 
   /**
    * Prompt for bot selection
+   *
+   * Shows both configured bots (from .envs/) and BotFather bots for selection.
+   *
+   * @param botFatherBots - Bots fetched from BotFather
+   * @param configuredBots - Bots configured in .envs/ directory
+   * @param currentBot - Currently active bot configuration
    */
   async promptBotSelection(
-    availableBots: IBotInfo[],
+    botFatherBots: IBotInfo[],
+    configuredBots: IConfiguredBot[],
     currentBot?: IExistingBotConfig | null
   ): Promise<IBotSelection> {
     console.log('')
@@ -141,20 +149,71 @@ export class BootstrapState {
       // Continue to create new bot
     }
 
-    // Show available bots
-    if (availableBots.length > 0) {
+    // Show configured bots from .envs/
+    if (configuredBots.length > 0) {
       console.log('')
-      console.log(chalk.cyan('Your bots:'))
+      console.log(chalk.cyan('📁 Configured bots (from .envs/):'))
 
-      // Put Create and Cancel options first, then available bots
-      const botChoices = [
+      for (const bot of configuredBots) {
+        const envs: string[] = []
+        if (bot.hasLocal) envs.push('local')
+        if (bot.hasStaging) envs.push('staging')
+        if (bot.hasProduction) envs.push('production')
+        const envStr = envs.join(', ')
+        const activeMarker = bot.isActive ? chalk.yellow('⭐ ') : '  '
+        const statusStr = bot.isActive ? chalk.yellow('(active)') : ''
+        console.log(`${activeMarker}${chalk.green('@' + bot.username)} ${statusStr} - ${chalk.gray(envStr)}`)
+      }
+    }
+
+    // Show BotFather bots
+    const configuredUsernames = new Set(configuredBots.map(b => b.username))
+    const unconfiguredBotFatherBots = botFatherBots.filter(b => !configuredUsernames.has(b.username))
+    const alreadyConfiguredBots = botFatherBots.filter(b => configuredUsernames.has(b.username))
+
+    if (botFatherBots.length > 0) {
+      console.log('')
+      console.log(chalk.cyan('🌐 BotFather bots:'))
+
+      // Show already configured bots first
+      for (const bot of alreadyConfiguredBots) {
+        console.log(`  ${chalk.green('✅')} ${chalk.green('@' + bot.username)} - ${chalk.gray('(already configured)')}`)
+      }
+
+      // Then show unconfigured bots
+      for (const bot of unconfiguredBotFatherBots) {
+        console.log(`  • ${chalk.white('@' + bot.username)} - ${bot.name}`)
+      }
+    }
+
+    // Build choices for selection
+    const hasAnyBots = botFatherBots.length > 0 || configuredBots.length > 0
+
+    if (hasAnyBots) {
+      console.log('')
+
+      // Build bot choices - configured bots first, then unconfigured BotFather bots
+      const botChoices: Array<{ name: string; value: string }> = [
         { name: '➕ Create new bot', value: '__create__' },
         { name: '❌ Cancel', value: '__cancel__' },
-        ...availableBots.map((bot) => ({
-          name: `${chalk.green('@' + bot.username)} - ${bot.name}`,
-          value: bot.username,
-        })),
       ]
+
+      // Add configured bots
+      for (const bot of configuredBots) {
+        const marker = bot.isActive ? '⭐ ' : ''
+        botChoices.push({
+          name: `${marker}${chalk.green('@' + bot.username)} ${chalk.gray('(configured)')}`,
+          value: bot.username,
+        })
+      }
+
+      // Add unconfigured BotFather bots
+      for (const bot of unconfiguredBotFatherBots) {
+        botChoices.push({
+          name: `${chalk.white('@' + bot.username)} - ${bot.name}`,
+          value: bot.username,
+        })
+      }
 
       const selected = await select({
         message: 'Select a bot or create a new one:',
@@ -169,7 +228,7 @@ export class BootstrapState {
         return { action: 'create' }
       }
 
-      const botInfo = availableBots.find((b) => b.username === selected)
+      const botInfo = botFatherBots.find((b) => b.username === selected)
       return {
         action: 'reuse',
         botInfo,
