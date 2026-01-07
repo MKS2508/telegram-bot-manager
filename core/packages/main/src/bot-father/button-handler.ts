@@ -253,4 +253,19 @@ export class ButtonHandler {
     debug(buttonLogger, 'Finding "Edit Commands" button')
     return this.findButtonByText(message, 'Edit Commands')
   }
+
+  findEditDescriptionButton(message: Message): string | null {
+    debug(buttonLogger, 'Finding "Edit Description" button')
+    return this.findButtonByText(message, 'Edit Description')
+  }
+
+  findEditAboutButton(message: Message): string | null {
+    debug(buttonLogger, 'Finding "Edit About" button')
+    return this.findButtonByText(message, 'Edit About')
+  }
+
+  findEditNameButton(message: Message): string | null {
+    debug(buttonLogger, 'Finding "Edit Name" button')
+    return this.findButtonByText(message, 'Edit Name')
+  }
 }

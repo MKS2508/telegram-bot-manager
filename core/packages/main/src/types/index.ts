@@ -20,6 +20,9 @@ export type {
   IBotInfoResult,
   ISetCommandsResult,
   IGetTokenResult,
+  ISetDescriptionResult,
+  ISetAboutResult,
+  ISetNameResult,
   Message,
 } from './bot-father.types.js'
 

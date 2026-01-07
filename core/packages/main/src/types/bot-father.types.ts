@@ -223,6 +223,33 @@ export interface IGetTokenResult {
   error?: string
 }
 
+/**
+ * Result of setting bot description operation.
+ */
+export interface ISetDescriptionResult {
+  success: boolean
+  description?: string
+  error?: string
+}
+
+/**
+ * Result of setting bot about text operation.
+ */
+export interface ISetAboutResult {
+  success: boolean
+  about?: string
+  error?: string
+}
+
+/**
+ * Result of setting bot name operation.
+ */
+export interface ISetNameResult {
+  success: boolean
+  name?: string
+  error?: string
+}
+
 // =============================================================================
 // Internal Types (for library implementation)
 // =============================================================================

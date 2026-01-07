@@ -8,6 +8,9 @@ import type {
   ISetCommandsResult,
   IBotCommand,
   IGetTokenResult,
+  ISetDescriptionResult,
+  ISetAboutResult,
+  ISetNameResult,
   Message,
 } from '../types/index.js'
 import { MessageHandler } from './message-handler.js'
@@ -32,6 +35,9 @@ export type {
   ISetCommandsResult,
   IBotCommand,
   IGetTokenResult,
+  ISetDescriptionResult,
+  ISetAboutResult,
+  ISetNameResult,
 }
 
 export class BotFatherManager {
@@ -779,6 +785,330 @@ export class BotFatherManager {
       if (confirmationText.toLowerCase().includes('success') ||
           confirmationText.toLowerCase().includes('command list updated')) {
         return { success: true, commands }
+      }
+
+      return { success: false, error: `Unexpected response: "${confirmationText}"` }
+    } catch (error) {
+      this.messageHandler.removeListener()
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      }
+    }
+  }
+
+  /**
+   * Set bot description via BotFather.
+   *
+   * @example
+   * ```typescript
+   * const result = await botFather.setDescription('mybot123bot', 'A helpful bot that...');
+   * if (result.success) {
+   *   console.log('Description updated');
+   * }
+   * ```
+   *
+   * @param botUsername - Bot username without @
+   * @param description - New bot description
+   * @returns Result indicating success or failure
+   */
+  async setDescription(botUsername: string, description: string): Promise<ISetDescriptionResult> {
+    const username = botUsername.startsWith('@') ? botUsername.slice(1) : botUsername
+    debug(botFatherLogger, `setDescription() called for @${username}`)
+
+    try {
+      this.messageHandler.setupListener()
+      await this.messageHandler.sleep(500)
+
+      // Navigate to Edit Bot menu
+      await this.messageHandler.sendMessage('/mybots')
+      await this.messageHandler.sleep(2000)
+
+      const listResponse = await this.messageHandler.waitForResponse(10000)
+      if (!listResponse) {
+        this.messageHandler.removeListener()
+        return { success: false, error: 'No response from BotFather (timeout)' }
+      }
+
+      const botButtonData = this.buttonHandler.findBotButtonData(listResponse, username)
+      if (!botButtonData) {
+        this.messageHandler.removeListener()
+        return { success: false, error: `Bot @${username} not found in bot list` }
+      }
+
+      await this.buttonHandler.clickInlineButton(listResponse, botButtonData)
+      await this.messageHandler.sleep(2000)
+
+      const botMenuResponse = await this.messageHandler.waitForResponse(10000)
+      if (!botMenuResponse) {
+        this.messageHandler.removeListener()
+        return { success: false, error: 'No response after selecting bot (timeout)' }
+      }
+
+      // Click "Edit Bot" button
+      const editBotButton = this.buttonHandler.findEditBotButton(botMenuResponse)
+      if (!editBotButton) {
+        this.messageHandler.removeListener()
+        return { success: false, error: '"Edit Bot" button not found' }
+      }
+
+      await this.buttonHandler.clickInlineButton(botMenuResponse, editBotButton)
+      await this.messageHandler.sleep(2000)
+
+      const editBotMenuResponse = await this.messageHandler.waitForResponse(10000)
+      if (!editBotMenuResponse) {
+        this.messageHandler.removeListener()
+        return { success: false, error: 'No response after clicking "Edit Bot" (timeout)' }
+      }
+
+      // Click "Edit Description" button
+      const editDescriptionButton = this.buttonHandler.findEditDescriptionButton(editBotMenuResponse)
+      if (!editDescriptionButton) {
+        this.messageHandler.removeListener()
+        return { success: false, error: '"Edit Description" button not found' }
+      }
+
+      await this.buttonHandler.clickInlineButton(editBotMenuResponse, editDescriptionButton)
+      await this.messageHandler.sleep(2000)
+
+      const descPromptResponse = await this.messageHandler.waitForResponse(10000)
+      if (!descPromptResponse) {
+        this.messageHandler.removeListener()
+        return { success: false, error: 'No response after clicking "Edit Description" (timeout)' }
+      }
+
+      // Send the description
+      await this.messageHandler.sendMessage(description)
+      await this.messageHandler.sleep(2000)
+
+      const confirmationResponse = await this.messageHandler.waitForResponse(10000)
+      if (!confirmationResponse) {
+        this.messageHandler.removeListener()
+        return { success: false, error: 'No confirmation response (timeout)' }
+      }
+
+      const confirmationText = extractMessageText(confirmationResponse)
+      this.messageHandler.removeListener()
+
+      if (confirmationText.toLowerCase().includes('success') ||
+          confirmationText.toLowerCase().includes('description')) {
+        return { success: true, description }
+      }
+
+      return { success: false, error: `Unexpected response: "${confirmationText}"` }
+    } catch (error) {
+      this.messageHandler.removeListener()
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      }
+    }
+  }
+
+  /**
+   * Set bot about text via BotFather.
+   *
+   * @example
+   * ```typescript
+   * const result = await botFather.setAboutText('mybot123bot', 'About this bot...');
+   * if (result.success) {
+   *   console.log('About text updated');
+   * }
+   * ```
+   *
+   * @param botUsername - Bot username without @
+   * @param about - New bot about text
+   * @returns Result indicating success or failure
+   */
+  async setAboutText(botUsername: string, about: string): Promise<ISetAboutResult> {
+    const username = botUsername.startsWith('@') ? botUsername.slice(1) : botUsername
+    debug(botFatherLogger, `setAboutText() called for @${username}`)
+
+    try {
+      this.messageHandler.setupListener()
+      await this.messageHandler.sleep(500)
+
+      // Navigate to Edit Bot menu
+      await this.messageHandler.sendMessage('/mybots')
+      await this.messageHandler.sleep(2000)
+
+      const listResponse = await this.messageHandler.waitForResponse(10000)
+      if (!listResponse) {
+        this.messageHandler.removeListener()
+        return { success: false, error: 'No response from BotFather (timeout)' }
+      }
+
+      const botButtonData = this.buttonHandler.findBotButtonData(listResponse, username)
+      if (!botButtonData) {
+        this.messageHandler.removeListener()
+        return { success: false, error: `Bot @${username} not found in bot list` }
+      }
+
+      await this.buttonHandler.clickInlineButton(listResponse, botButtonData)
+      await this.messageHandler.sleep(2000)
+
+      const botMenuResponse = await this.messageHandler.waitForResponse(10000)
+      if (!botMenuResponse) {
+        this.messageHandler.removeListener()
+        return { success: false, error: 'No response after selecting bot (timeout)' }
+      }
+
+      // Click "Edit Bot" button
+      const editBotButton = this.buttonHandler.findEditBotButton(botMenuResponse)
+      if (!editBotButton) {
+        this.messageHandler.removeListener()
+        return { success: false, error: '"Edit Bot" button not found' }
+      }
+
+      await this.buttonHandler.clickInlineButton(botMenuResponse, editBotButton)
+      await this.messageHandler.sleep(2000)
+
+      const editBotMenuResponse = await this.messageHandler.waitForResponse(10000)
+      if (!editBotMenuResponse) {
+        this.messageHandler.removeListener()
+        return { success: false, error: 'No response after clicking "Edit Bot" (timeout)' }
+      }
+
+      // Click "Edit About" button
+      const editAboutButton = this.buttonHandler.findEditAboutButton(editBotMenuResponse)
+      if (!editAboutButton) {
+        this.messageHandler.removeListener()
+        return { success: false, error: '"Edit About" button not found' }
+      }
+
+      await this.buttonHandler.clickInlineButton(editBotMenuResponse, editAboutButton)
+      await this.messageHandler.sleep(2000)
+
+      const aboutPromptResponse = await this.messageHandler.waitForResponse(10000)
+      if (!aboutPromptResponse) {
+        this.messageHandler.removeListener()
+        return { success: false, error: 'No response after clicking "Edit About" (timeout)' }
+      }
+
+      // Send the about text
+      await this.messageHandler.sendMessage(about)
+      await this.messageHandler.sleep(2000)
+
+      const confirmationResponse = await this.messageHandler.waitForResponse(10000)
+      if (!confirmationResponse) {
+        this.messageHandler.removeListener()
+        return { success: false, error: 'No confirmation response (timeout)' }
+      }
+
+      const confirmationText = extractMessageText(confirmationResponse)
+      this.messageHandler.removeListener()
+
+      if (confirmationText.toLowerCase().includes('success') ||
+          confirmationText.toLowerCase().includes('about')) {
+        return { success: true, about }
+      }
+
+      return { success: false, error: `Unexpected response: "${confirmationText}"` }
+    } catch (error) {
+      this.messageHandler.removeListener()
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      }
+    }
+  }
+
+  /**
+   * Set bot name via BotFather.
+   *
+   * @example
+   * ```typescript
+   * const result = await botFather.setName('mybot123bot', 'My New Bot Name');
+   * if (result.success) {
+   *   console.log('Name updated');
+   * }
+   * ```
+   *
+   * @param botUsername - Bot username without @
+   * @param name - New bot display name
+   * @returns Result indicating success or failure
+   */
+  async setName(botUsername: string, name: string): Promise<ISetNameResult> {
+    const username = botUsername.startsWith('@') ? botUsername.slice(1) : botUsername
+    debug(botFatherLogger, `setName() called for @${username}`)
+
+    try {
+      this.messageHandler.setupListener()
+      await this.messageHandler.sleep(500)
+
+      // Navigate to Edit Bot menu
+      await this.messageHandler.sendMessage('/mybots')
+      await this.messageHandler.sleep(2000)
+
+      const listResponse = await this.messageHandler.waitForResponse(10000)
+      if (!listResponse) {
+        this.messageHandler.removeListener()
+        return { success: false, error: 'No response from BotFather (timeout)' }
+      }
+
+      const botButtonData = this.buttonHandler.findBotButtonData(listResponse, username)
+      if (!botButtonData) {
+        this.messageHandler.removeListener()
+        return { success: false, error: `Bot @${username} not found in bot list` }
+      }
+
+      await this.buttonHandler.clickInlineButton(listResponse, botButtonData)
+      await this.messageHandler.sleep(2000)
+
+      const botMenuResponse = await this.messageHandler.waitForResponse(10000)
+      if (!botMenuResponse) {
+        this.messageHandler.removeListener()
+        return { success: false, error: 'No response after selecting bot (timeout)' }
+      }
+
+      // Click "Edit Bot" button
+      const editBotButton = this.buttonHandler.findEditBotButton(botMenuResponse)
+      if (!editBotButton) {
+        this.messageHandler.removeListener()
+        return { success: false, error: '"Edit Bot" button not found' }
+      }
+
+      await this.buttonHandler.clickInlineButton(botMenuResponse, editBotButton)
+      await this.messageHandler.sleep(2000)
+
+      const editBotMenuResponse = await this.messageHandler.waitForResponse(10000)
+      if (!editBotMenuResponse) {
+        this.messageHandler.removeListener()
+        return { success: false, error: 'No response after clicking "Edit Bot" (timeout)' }
+      }
+
+      // Click "Edit Name" button
+      const editNameButton = this.buttonHandler.findEditNameButton(editBotMenuResponse)
+      if (!editNameButton) {
+        this.messageHandler.removeListener()
+        return { success: false, error: '"Edit Name" button not found' }
+      }
+
+      await this.buttonHandler.clickInlineButton(editBotMenuResponse, editNameButton)
+      await this.messageHandler.sleep(2000)
+
+      const namePromptResponse = await this.messageHandler.waitForResponse(10000)
+      if (!namePromptResponse) {
+        this.messageHandler.removeListener()
+        return { success: false, error: 'No response after clicking "Edit Name" (timeout)' }
+      }
+
+      // Send the name
+      await this.messageHandler.sendMessage(name)
+      await this.messageHandler.sleep(2000)
+
+      const confirmationResponse = await this.messageHandler.waitForResponse(10000)
+      if (!confirmationResponse) {
+        this.messageHandler.removeListener()
+        return { success: false, error: 'No confirmation response (timeout)' }
+      }
+
+      const confirmationText = extractMessageText(confirmationResponse)
+      this.messageHandler.removeListener()
+
+      if (confirmationText.toLowerCase().includes('success') ||
+          confirmationText.toLowerCase().includes('name')) {
+        return { success: true, name }
       }
 
       return { success: false, error: `Unexpected response: "${confirmationText}"` }
