@@ -1,12 +1,15 @@
 import type { BootstrapClient } from '../client.js'
 import type {
-  BotCreationResult,
-  CreateBotOptions,
-  BotInfo,
-  BotListResult,
-  BotInfoResult,
+  IBotCreationResult,
+  ICreateBotOptions,
+  IBotInfo,
+  IBotListResult,
+  IBotInfoResult,
+  ISetCommandsResult,
+  IBotCommand,
+  IGetTokenResult,
   Message,
-} from './types.js'
+} from '../types/index.js'
 import { MessageHandler } from './message-handler.js'
 import { ButtonHandler } from './button-handler.js'
 import {
@@ -21,11 +24,14 @@ import {
 import { botFatherLogger, debug } from './logger.js'
 
 export type {
-  BotCreationResult,
-  CreateBotOptions,
-  BotInfo,
-  BotListResult,
-  BotInfoResult,
+  IBotCreationResult,
+  ICreateBotOptions,
+  IBotInfo,
+  IBotListResult,
+  IBotInfoResult,
+  ISetCommandsResult,
+  IBotCommand,
+  IGetTokenResult,
 }
 
 export class BotFatherManager {
@@ -38,7 +44,7 @@ export class BotFatherManager {
     this.buttonHandler = new ButtonHandler(client, this.botFatherUsername)
   }
 
-  async createBot(options: CreateBotOptions): Promise<BotCreationResult> {
+  async createBot(options: ICreateBotOptions): Promise<IBotCreationResult> {
     try {
       this.messageHandler.setupListener()
       await this.messageHandler.sleep(500)
@@ -99,7 +105,7 @@ export class BotFatherManager {
     }
   }
 
-  async listBots(): Promise<BotListResult> {
+  async listBots(): Promise<IBotListResult> {
     debug(botFatherLogger, 'listBots() called')
     try {
       this.messageHandler.setupListener()
@@ -142,7 +148,7 @@ export class BotFatherManager {
     }
   }
 
-  async getBotInfo(botUsername: string): Promise<BotInfoResult> {
+  async getBotInfo(botUsername: string): Promise<IBotInfoResult> {
     try {
       const username = botUsername.startsWith('@') ? botUsername.slice(1) : botUsername
 
@@ -229,12 +235,12 @@ export class BotFatherManager {
     }
   }
 
-  async listAllBots(): Promise<BotListResult> {
+  async listAllBots(): Promise<IBotListResult> {
     debug(botFatherLogger, 'listAllBots() called')
     try {
       this.messageHandler.setupListener()
 
-      const allBots: BotInfo[] = []
+      const allBots: IBotInfo[] = []
       let currentPage = 1
       let hasNextPage = true
       let lastMessageId: number | null = null
@@ -312,7 +318,7 @@ export class BotFatherManager {
     }
   }
 
-  async getBotToken(botUsername: string): Promise<{ success: boolean; token?: string }> {
+  async getBotToken(botUsername: string): Promise<IGetTokenResult> {
     try {
       this.messageHandler.setupListener()
       await this.messageHandler.sleep(500)
@@ -394,9 +400,9 @@ export class BotFatherManager {
     }
   }
 
-  async getAllBotsWithTokens(): Promise<Array<BotInfo & { token: string }>> {
+  async getAllBotsWithTokens(): Promise<Array<IBotInfo & { token: string }>> {
     debug(botFatherLogger, 'getAllBotsWithTokens() called')
-    const botsWithTokens: Array<BotInfo & { token: string }> = []
+    const botsWithTokens: Array<IBotInfo & { token: string }> = []
     let currentPage = 1
 
     try {
@@ -646,5 +652,142 @@ export class BotFatherManager {
     }
 
     return botsWithTokens
+  }
+
+  /**
+   * Set bot commands via BotFather.
+   *
+   * @example
+   * ```typescript
+   * const result = await botFather.setCommands('mybot123bot', [
+   *   { command: 'start', description: 'Start the bot' },
+   *   { command: 'help', description: 'Get help' },
+   * ]);
+   * if (result.success) {
+   *   console.log('Commands set successfully');
+   * }
+   * ```
+   *
+   * @param botUsername - Bot username without @
+   * @param commands - Array of command definitions
+   * @returns Result indicating success or failure
+   */
+  async setCommands(botUsername: string, commands: IBotCommand[]): Promise<ISetCommandsResult> {
+    const username = botUsername.startsWith('@') ? botUsername.slice(1) : botUsername
+    debug(botFatherLogger, `setCommands() called for @${username} with ${commands.length} commands`)
+
+    try {
+      this.messageHandler.setupListener()
+      await this.messageHandler.sleep(500)
+
+      // Step 1: Send /mybots to get bot list
+      debug(botFatherLogger, 'Sending /mybots command')
+      await this.messageHandler.sendMessage('/mybots')
+      await this.messageHandler.sleep(2000)
+
+      const listResponse = await this.messageHandler.waitForResponse(10000)
+      if (!listResponse) {
+        this.messageHandler.removeListener()
+        return { success: false, error: 'No response from BotFather (timeout)' }
+      }
+
+      // Step 2: Click on bot button
+      const botButtonData = this.buttonHandler.findBotButtonData(listResponse, username)
+      if (!botButtonData) {
+        this.messageHandler.removeListener()
+        return { success: false, error: `Bot @${username} not found in bot list` }
+      }
+
+      debug(botFatherLogger, `Clicking on @${username} button`)
+      const botClicked = await this.buttonHandler.clickInlineButton(listResponse, botButtonData)
+      if (!botClicked) {
+        this.messageHandler.removeListener()
+        return { success: false, error: `Failed to click @${username} button` }
+      }
+
+      await this.messageHandler.sleep(2000)
+      const botMenuResponse = await this.messageHandler.waitForResponse(10000)
+      if (!botMenuResponse) {
+        this.messageHandler.removeListener()
+        return { success: false, error: 'No response after selecting bot (timeout)' }
+      }
+
+      // Step 3: Click "Edit Bot" button
+      const editBotButton = this.buttonHandler.findEditBotButton(botMenuResponse)
+      if (!editBotButton) {
+        this.messageHandler.removeListener()
+        return { success: false, error: '"Edit Bot" button not found' }
+      }
+
+      debug(botFatherLogger, 'Clicking "Edit Bot" button')
+      const editBotClicked = await this.buttonHandler.clickInlineButton(botMenuResponse, editBotButton)
+      if (!editBotClicked) {
+        this.messageHandler.removeListener()
+        return { success: false, error: 'Failed to click "Edit Bot" button' }
+      }
+
+      await this.messageHandler.sleep(2000)
+      const editBotMenuResponse = await this.messageHandler.waitForResponse(10000)
+      if (!editBotMenuResponse) {
+        this.messageHandler.removeListener()
+        return { success: false, error: 'No response after clicking "Edit Bot" (timeout)' }
+      }
+
+      // Step 4: Click "Edit Commands" button
+      const editCommandsButton = this.buttonHandler.findEditCommandsButton(editBotMenuResponse)
+      if (!editCommandsButton) {
+        this.messageHandler.removeListener()
+        return { success: false, error: '"Edit Commands" button not found' }
+      }
+
+      debug(botFatherLogger, 'Clicking "Edit Commands" button')
+      const editCommandsClicked = await this.buttonHandler.clickInlineButton(editBotMenuResponse, editCommandsButton)
+      if (!editCommandsClicked) {
+        this.messageHandler.removeListener()
+        return { success: false, error: 'Failed to click "Edit Commands" button' }
+      }
+
+      await this.messageHandler.sleep(2000)
+      const commandsPromptResponse = await this.messageHandler.waitForResponse(10000)
+      if (!commandsPromptResponse) {
+        this.messageHandler.removeListener()
+        return { success: false, error: 'No response after clicking "Edit Commands" (timeout)' }
+      }
+
+      // Step 5: Send commands formatted as "command1 - description1\ncommand2 - description2"
+      const commandsText = commands
+        .map(cmd => `${cmd.command} - ${cmd.description}`)
+        .join('\n')
+
+      debug(botFatherLogger, `Sending commands:\n${commandsText}`)
+      await this.messageHandler.sendMessage(commandsText)
+      await this.messageHandler.sleep(2000)
+
+      // Step 6: Wait for confirmation
+      const confirmationResponse = await this.messageHandler.waitForResponse(10000)
+      if (!confirmationResponse) {
+        this.messageHandler.removeListener()
+        return { success: false, error: 'No confirmation response (timeout)' }
+      }
+
+      const confirmationText = extractMessageText(confirmationResponse)
+      debug(botFatherLogger, `Confirmation response: "${confirmationText}"`)
+
+      this.messageHandler.removeListener()
+
+      // Check for success message
+      if (confirmationText.toLowerCase().includes('success') ||
+          confirmationText.toLowerCase().includes('command list updated')) {
+        return { success: true, commands }
+      }
+
+      return { success: false, error: `Unexpected response: "${confirmationText}"` }
+    } catch (error) {
+      this.messageHandler.removeListener()
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      }
+    }
   }
 }

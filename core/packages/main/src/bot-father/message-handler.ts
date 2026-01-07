@@ -1,5 +1,5 @@
 import type { BootstrapClient } from '../client.js'
-import type { Message } from './types.js'
+import type { Message } from '../types/index.js'
 import { NewMessage } from 'telegram/events'
 import { EditedMessage } from 'telegram/events/EditedMessage'
 import { messageLogger, debug } from './logger.js'

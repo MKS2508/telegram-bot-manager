@@ -15,6 +15,12 @@ export type {
   ISetAboutOptions,
   ISetNameOptions,
   IBotFatherConfig,
+  IBotCreationResult,
+  IBotListResult,
+  IBotInfoResult,
+  ISetCommandsResult,
+  IGetTokenResult,
+  Message,
 } from './bot-father.types.js'
 
 // Client types

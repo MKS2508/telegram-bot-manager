@@ -122,6 +122,29 @@ export { BootstrapState } from './bootstrap-state.js'
 export * from './types/index.js'
 
 // =============================================================================
+// Configuration
+// =============================================================================
+
+/**
+ * Configuration loaders and utilities.
+ *
+ * @example
+ * ```typescript
+ * import { getDefaultCommands, loadCommandsConfig } from '@mks2508/telegram-bot-manager';
+ *
+ * const commands = getDefaultCommands();
+ * // Or load from custom file
+ * const custom = loadCommandsConfig('./my-commands.json');
+ * ```
+ */
+export {
+  loadCommandsConfig,
+  loadTopicsConfig,
+  getDefaultCommands,
+  type ICommandsConfigFile,
+} from './config/index.js'
+
+// =============================================================================
 // Utilities (internal, but exported for advanced use)
 // =============================================================================
 

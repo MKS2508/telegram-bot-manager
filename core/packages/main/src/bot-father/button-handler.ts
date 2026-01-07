@@ -1,5 +1,5 @@
 import type { BootstrapClient } from '../client.js'
-import type { Message } from './types.js'
+import type { Message } from '../types/index.js'
 import { buttonLogger, debug } from './logger.js'
 
 export class ButtonHandler {
@@ -242,5 +242,15 @@ export class ButtonHandler {
       return false
     }
     return this.clickInlineButton(message, buttonData)
+  }
+
+  findEditBotButton(message: Message): string | null {
+    debug(buttonLogger, 'Finding "Edit Bot" button')
+    return this.findButtonByText(message, 'Edit Bot')
+  }
+
+  findEditCommandsButton(message: Message): string | null {
+    debug(buttonLogger, 'Finding "Edit Commands" button')
+    return this.findButtonByText(message, 'Edit Commands')
   }
 }

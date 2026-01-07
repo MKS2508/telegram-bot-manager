@@ -1,0 +1,30 @@
+{
+  "$schema": "1.0",
+  "description": "Default bot commands for telegram-bot-manager",
+  "commands": [
+    {
+      "command": "start",
+      "description": "Start the bot"
+    },
+    {
+      "command": "health",
+      "description": "Check bot health"
+    },
+    {
+      "command": "uptime",
+      "description": "Show bot uptime"
+    },
+    {
+      "command": "stats",
+      "description": "Show statistics"
+    },
+    {
+      "command": "logs",
+      "description": "Log streaming status"
+    },
+    {
+      "command": "getinfo",
+      "description": "Get your info"
+    }
+  ]
+}

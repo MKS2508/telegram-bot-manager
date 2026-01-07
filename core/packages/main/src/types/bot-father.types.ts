@@ -174,6 +174,56 @@ export interface IBotFatherConfig {
 }
 
 // =============================================================================
+// Operation Results
+// =============================================================================
+
+/**
+ * Result of bot creation operation.
+ */
+export interface IBotCreationResult {
+  success: boolean
+  botToken?: string
+  botUsername?: string
+  error?: string
+}
+
+/**
+ * Result of listing bots operation.
+ */
+export interface IBotListResult {
+  success: boolean
+  bots?: IBotInfo[]
+  error?: string
+}
+
+/**
+ * Result of getting bot info operation.
+ */
+export interface IBotInfoResult {
+  success: boolean
+  bot?: IBotInfo
+  error?: string
+}
+
+/**
+ * Result of setting commands operation.
+ */
+export interface ISetCommandsResult {
+  success: boolean
+  commands?: IBotCommand[]
+  error?: string
+}
+
+/**
+ * Result of getting bot token operation.
+ */
+export interface IGetTokenResult {
+  success: boolean
+  token?: string
+  error?: string
+}
+
+// =============================================================================
 // Internal Types (for library implementation)
 // =============================================================================
 
