@@ -1,80 +1,42 @@
-/**
- * telegram-bot-manager
- *
- * Telegram Bot management in Typescript, w/ GramJS / telegraf. Automates bot creation and management, bot and groups setups, etc. used y mks-scaffolder (telegram template) and mks2508-bot-father
- *
- * @module
- * @example
- * ```typescript
- * import { greet } from 'mks2508/core';
- * import { createLogger } from 'mks2508/utils/logger';
- *
- * const log = createLogger('Main');
- *
- * const result = greet('World');
- *
- * if (result.isErr()) {
- *   log.error('Failed', result.error);
- *   return;
- * }
- *
- * log.success(result.value);
- * ```
- */
+export { BootstrapClient } from './client.js'
+export type { TelegramClientConfig, SessionData } from './client.js'
 
-import { ok, type Result, type ResultError } from 'mks2508/utils/result';
-import type { AppErrorCode } from 'mks2508/utils/result';
+export { BotFatherManager } from './bot-father/index.js'
+export type {
+  BotCreationResult,
+  CreateBotOptions,
+  BotInfo,
+  BotListResult,
+  BotInfoResult,
+} from './bot-father/index.js'
 
-// Importar tipos desde /types para uso interno
-import type { IGreetOptions } from './types';
+export { GroupManager } from './group-manager.js'
+export type {
+  GroupCreationResult,
+  CreateSupergroupOptions,
+  ForumGroupInfo,
+  ForumTopicInfo,
+} from './group-manager.js'
 
-// Re-exportar tipos desde /types
-export * from './types';
+export { TopicManager } from './topic-manager.js'
+export type { TopicCreationResult, CreateTopicOptions } from './topic-manager.js'
 
-// Version del package
-export const version = '0.1.0';
+export { EnvManager } from './env-manager.js'
+export type {
+  BotMetadata,
+  ConfiguredBot,
+  MigrationResult,
+} from './env-manager.js'
+export { Environment } from '../../../core/src/config/env.js'
 
-// Tipo de error
-type AppError = ResultError<AppErrorCode>;
-
-/**
- * Saluda a alguien con un mensaje personalizable.
- *
- * @param name - Nombre de la persona a saludar
- * @param options - Opciones de saludo
- * @returns Result con mensaje de saludo o error
- *
- * @example
- * ```typescript
- * const result = greet('World', { prefix: 'Hello' });
- * if (result.isOk()) {
- *   console.log(result.value); // "Hello, World!"
- * }
- * ```
- */
-export function greet(
-  name: string,
-  options?: IGreetOptions
-): Result<string, AppError> {
-  const prefix = options?.prefix ?? 'Hello';
-  const suffix = options?.suffix ?? '!';
-  return ok(`${prefix}, ${name}${suffix}`);
-}
-
-/**
- * Factory function para crear un greeter configurado.
- *
- * @param defaultOptions - Opciones por defecto para todos los saludos
- * @returns Funcion greeter configurada
- *
- * @example
- * ```typescript
- * const spanishGreeter = createGreeter({ prefix: 'Hola' });
- * const result = spanishGreeter('Mundo'); // "Hola, Mundo!"
- * ```
- */
-export function createGreeter(defaultOptions?: IGreetOptions) {
-  return (name: string, options?: IGreetOptions): Result<string, AppError> => {
-    return greet(name, { ...defaultOptions, ...options });
-  };
-}
+export { BootstrapState } from './bootstrap-state.js'
+export type {
+  ExistingBotConfig,
+  BotSelection,
+  GroupInfo,
+  GroupSelection,
+  TopicInfo,
+  TopicsSelection,
+  BootstrapSessionState,
+  BootstrapStep,
+} from './bootstrap-state.js'
