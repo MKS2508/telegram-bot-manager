@@ -8,5 +8,6 @@ export {
   loadCommandsConfig,
   loadTopicsConfig,
   getDefaultCommands,
+  getDefaultTopics,
   type ICommandsConfigFile,
 } from './loader.js'

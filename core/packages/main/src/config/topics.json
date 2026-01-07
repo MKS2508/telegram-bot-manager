@@ -1,0 +1,36 @@
+{
+  "$schema": "1.0",
+  "description": "Default forum topics for telegram-bot-manager",
+  "topics": [
+    {
+      "name": "General",
+      "required": true,
+      "envKey": "TG_GENERAL_TOPIC_ID",
+      "iconColor": null
+    },
+    {
+      "name": "Control",
+      "required": true,
+      "envKey": "TG_CONTROL_TOPIC_ID",
+      "iconColor": 16766720
+    },
+    {
+      "name": "Logs",
+      "required": true,
+      "envKey": "TG_LOG_TOPIC_ID",
+      "iconColor": 7322096
+    },
+    {
+      "name": "Config",
+      "required": false,
+      "envKey": "TG_CONFIG_TOPIC_ID",
+      "iconColor": 16749490
+    },
+    {
+      "name": "Bugs",
+      "required": false,
+      "envKey": "TG_BUGS_TOPIC_ID",
+      "iconColor": 16478047
+    }
+  ]
+}

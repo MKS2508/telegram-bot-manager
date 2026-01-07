@@ -141,6 +141,7 @@ export {
   loadCommandsConfig,
   loadTopicsConfig,
   getDefaultCommands,
+  getDefaultTopics,
   type ICommandsConfigFile,
 } from './config/index.js'
 

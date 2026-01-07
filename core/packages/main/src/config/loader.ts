@@ -7,7 +7,7 @@
 import { readFileSync, existsSync } from 'fs'
 import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
-import type { IBotCommand, ITopicsConfigFile } from '../types/index.js'
+import type { IBotCommand, ITopicsConfigFile, ITopicConfig } from '../types/index.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -99,4 +99,33 @@ export function loadTopicsConfig(path?: string): ITopicsConfigFile | null {
   } catch {
     return null
   }
+}
+
+/**
+ * Get default forum topics.
+ *
+ * @example
+ * ```typescript
+ * const topics = getDefaultTopics();
+ * for (const topic of topics) {
+ *   await topicManager.createTopic({ chatId, name: topic.name });
+ * }
+ * ```
+ *
+ * @param requiredOnly - If true, only return required topics
+ * @returns Array of default topic configurations
+ */
+export function getDefaultTopics(requiredOnly = false): ITopicConfig[] {
+  const config = loadTopicsConfig()
+  const topics = config?.topics ?? [
+    { name: 'General', required: true, envKey: 'TG_GENERAL_TOPIC_ID' },
+    { name: 'Control', required: true, envKey: 'TG_CONTROL_TOPIC_ID' },
+    { name: 'Logs', required: true, envKey: 'TG_LOG_TOPIC_ID' },
+  ]
+
+  if (requiredOnly) {
+    return topics.filter(t => t.required)
+  }
+
+  return topics
 }
