@@ -253,7 +253,7 @@ export class BotFatherManager {
 
       while (hasNextPage) {
         debug(botFatherLogger, `listAllBots() page ${currentPage}`)
-        console.log(`  📄 Fetching page ${currentPage}...`)
+        botFatherLogger.info(`📄 Fetching page ${currentPage}...`)
 
         if (currentPage === 1) {
           await this.messageHandler.sendMessage('/mybots')
@@ -265,7 +265,7 @@ export class BotFatherManager {
         const timeout = currentPage === 1 ? 10000 : 10000
         const response = await this.messageHandler.waitForNewResponse(timeout, lastMessageId)
         if (!response) {
-          console.log(`  ⚠️ Timeout waiting for page ${currentPage}`)
+          botFatherLogger.warn(`⚠️ Timeout waiting for page ${currentPage}`)
           break
         }
 
@@ -282,25 +282,25 @@ export class BotFatherManager {
         })
 
         allBots.push(...uniquePageBots)
-        console.log(`  📄 Page ${currentPage}: Found ${uniquePageBots.length} bots (total: ${allBots.length})`)
+        botFatherLogger.info(`📄 Page ${currentPage}: Found ${uniquePageBots.length} bots (total: ${allBots.length})`)
 
         const nextButtonData = this.buttonHandler.findPaginationButtonData(response, 'Next')
 
         if (nextButtonData) {
           const clicked = await this.buttonHandler.clickInlineButton(response, nextButtonData)
           if (!clicked) {
-            console.log(`  ⚠️ Failed to click Next button`)
+            botFatherLogger.warn(`⚠️ Failed to click Next button`)
             break
           }
 
           currentPage++
         } else {
-          console.log(`  ✓ Reached last page (page ${currentPage})`)
+          botFatherLogger.success(`✓ Reached last page (page ${currentPage})`)
           hasNextPage = false
         }
 
         if (currentPage > 50) {
-          console.log(`  ⚠️ Reached page limit (50)`)
+          botFatherLogger.warn(`⚠️ Reached page limit (50)`)
           break
         }
       }
@@ -406,7 +406,18 @@ export class BotFatherManager {
     }
   }
 
-  async getAllBotsWithTokens(): Promise<Array<IBotInfo & { token: string }>> {
+  async getAllBotsWithTokens(options?: {
+    onProgress?: (message: string) => void
+  }): Promise<Array<IBotInfo & { token: string }>> {
+    const { onProgress } = options ?? {}
+    const report = (msg: string) => {
+      if (onProgress) {
+        onProgress(msg)
+      } else {
+        botFatherLogger.info(msg)
+      }
+    }
+
     debug(botFatherLogger, 'getAllBotsWithTokens() called')
     const botsWithTokens: Array<IBotInfo & { token: string }> = []
     let currentPage = 1
@@ -421,7 +432,7 @@ export class BotFatherManager {
 
       while (hasNextPage) {
         debug(botFatherLogger, `Processing page ${currentPage}`)
-        console.log(`  📄 Page ${currentPage}...`)
+        report(`📄 Page ${currentPage}...`)
 
         // Only send /mybots on first page
         if (currentPage === 1) {
@@ -433,7 +444,7 @@ export class BotFatherManager {
           currentListResponse = await this.messageHandler.waitForResponse(10000)
           if (!currentListResponse) {
             debug(botFatherLogger, 'No response from BotFather (timeout)')
-            console.log(`  ✗ Failed to get page ${currentPage} response`)
+            botFatherLogger.warn(`✗ Failed to get page ${currentPage} response`)
             break
           }
           debug(botFatherLogger, 'Got bot list response')
@@ -453,33 +464,33 @@ export class BotFatherManager {
         // @ts-ignore
         const currentMsgId = currentListResponse.message?.id
         debug(botFatherLogger, `Page state: msgId=${currentMsgId}, hasPrev=${!!hasPrevButton}, hasNext=${!!hasNextButton}`)
-        console.log(`  [DEBUG] Page ${currentPage}: msgId=${currentMsgId}, hasPrev=${!!hasPrevButton}, hasNext=${!!hasNextButton}, bots=[${pageBots.map(b => b.username).join(', ')}]`)
+        debug(botFatherLogger, `Page ${currentPage}: msgId=${currentMsgId}, hasPrev=${!!hasPrevButton}, hasNext=${!!hasNextButton}, bots=[${pageBots.map(b => b.username).join(', ')}]`)
 
         const seenUsernames = new Set(botsWithTokens.map((b) => b.username))
         const uniquePageBots = pageBots.filter((bot) => !seenUsernames.has(bot.username))
 
-        console.log(`  📄 Page ${currentPage}: Found ${uniquePageBots.length} unique bot(s) to process`)
+        report(`📄 Page ${currentPage}: Found ${uniquePageBots.length} unique bot(s) to process`)
 
         // Process each bot on this page using Back navigation
         for (let i = 0; i < uniquePageBots.length; i++) {
           const bot = uniquePageBots[i]
           if (!bot) continue
 
-          console.log(`    ⏳ [${i + 1}/${uniquePageBots.length}] Fetching token for @${bot.username}...`)
+          report(`⏳ [${i + 1}/${uniquePageBots.length}] Fetching @${bot.username}...`)
 
           this.messageHandler.clearBuffer()
 
           // Find and click the bot button from the current list
           const buttonData = this.buttonHandler.findBotButtonData(currentListResponse, bot.username)
           if (!buttonData) {
-            console.log(`    ✗ Bot @${bot.username} not found in list`)
+            botFatherLogger.warn(`✗ Bot @${bot.username} not found in list`)
             continue
           }
 
           // Click bot button to go to bot menu
           const clicked = await this.buttonHandler.clickInlineButton(currentListResponse, buttonData)
           if (!clicked) {
-            console.log(`    ✗ Failed to click @${bot.username}`)
+            botFatherLogger.warn(`✗ Failed to click @${bot.username}`)
             continue
           }
 
@@ -488,7 +499,7 @@ export class BotFatherManager {
           // Wait for menu response (bot options)
           const menuResponse = await this.messageHandler.waitForResponse(10000)
           if (!menuResponse) {
-            console.log(`    ✗ No menu response for @${bot.username}`)
+            botFatherLogger.warn(`✗ No menu response for @${bot.username}`)
             continue
           }
 
@@ -502,7 +513,7 @@ export class BotFatherManager {
             // Click "API Token" button
             const apiTokenButton = this.buttonHandler.findButtonByText(menuResponse, 'API Token')
             if (!apiTokenButton) {
-              console.log(`    ✗ No API Token button for @${bot.username}`)
+              botFatherLogger.warn(`✗ No API Token button for @${bot.username}`)
               // Navigate back to list
               await this.buttonHandler.clickBackToBotList(menuResponse)
               await this.messageHandler.sleep(1500)
@@ -512,7 +523,7 @@ export class BotFatherManager {
 
             const apiTokenClicked = await this.buttonHandler.clickInlineButton(menuResponse, apiTokenButton)
             if (!apiTokenClicked) {
-              console.log(`    ✗ Failed to click API Token for @${bot.username}`)
+              botFatherLogger.warn(`✗ Failed to click API Token for @${bot.username}`)
               await this.buttonHandler.clickBackToBotList(menuResponse)
               await this.messageHandler.sleep(1500)
               currentListResponse = await this.messageHandler.waitForResponse(10000)
@@ -524,7 +535,7 @@ export class BotFatherManager {
             // Wait for token response
             const tokenResponse = await this.messageHandler.waitForResponse(10000)
             if (!tokenResponse) {
-              console.log(`    ✗ No token response for @${bot.username}`)
+              botFatherLogger.warn(`✗ No token response for @${bot.username}`)
               continue
             }
 
@@ -551,9 +562,9 @@ export class BotFatherManager {
               description: bot.description,
               about: bot.about,
             })
-            console.log(`    ✓ [@${bot.username}] Got token`)
+            report(`✓ [@${bot.username}] Got token`)
           } else {
-            console.log(`    ✗ [@${bot.username}] Failed to get token`)
+            report(`✗ [@${bot.username}] Failed to get token`)
           }
 
           // Navigate back to bot list using Back buttons
@@ -585,7 +596,7 @@ export class BotFatherManager {
           // If we're on a page > 1, we need to navigate forward to the correct page
           const botsAfterBack = currentListResponse ? parseBotsFromButtons(currentListResponse) : []
           const hasPrevAfterBack = currentListResponse ? this.buttonHandler.findPreviousButtonData(currentListResponse) : null
-          console.log(`    [DEBUG] After Back: currentPage=${currentPage}, bots=${botsAfterBack.length}, hasPrev=${!!hasPrevAfterBack}`)
+          debug(botFatherLogger, `After Back: currentPage=${currentPage}, bots=${botsAfterBack.length}, hasPrev=${!!hasPrevAfterBack}`)
 
           if (currentListResponse && currentPage > 1) {
             debug(botFatherLogger, `After Back: page=${currentPage}, hasPrev=${!!hasPrevAfterBack}, botsVisible=${botsAfterBack.length}`)
@@ -593,17 +604,14 @@ export class BotFatherManager {
             if (!hasPrevAfterBack) {
               // We're on page 1 but should be on a different page - navigate forward
               debug(botFatherLogger, `Back returned to page 1, navigating forward to page ${currentPage}`)
-              console.log(`    [DEBUG] Navigating forward: page 1 -> page ${currentPage}`)
 
               for (let navPage = 1; navPage < currentPage; navPage++) {
                 const nextBtn = this.buttonHandler.findPaginationButtonData(currentListResponse, 'Next')
                 if (!nextBtn) {
                   debug(botFatherLogger, `Cannot find Next button at page ${navPage}`)
-                  console.log(`    [DEBUG] Cannot find Next button at page ${navPage}`)
                   break
                 }
                 debug(botFatherLogger, `Clicking Next to go from page ${navPage} to ${navPage + 1}`)
-                console.log(`    [DEBUG] Clicking Next: page ${navPage} -> ${navPage + 1}`)
                 await this.buttonHandler.clickInlineButton(currentListResponse, nextBtn)
                 await this.messageHandler.sleep(1500)
                 currentListResponse = await this.messageHandler.waitForResponse(10000)
@@ -615,7 +623,6 @@ export class BotFatherManager {
 
               const finalBots = currentListResponse ? parseBotsFromButtons(currentListResponse) : []
               debug(botFatherLogger, `Navigation complete: now on page ${currentPage} with ${finalBots.length} bots`)
-              console.log(`    [DEBUG] Navigation complete: ${finalBots.length} bots visible`)
             } else {
               debug(botFatherLogger, `Already on page ${currentPage} (hasPrev=true)`)
             }
@@ -631,17 +638,17 @@ export class BotFatherManager {
         if (currentListResponse) {
           const nextButtonData = this.buttonHandler.findPaginationButtonData(currentListResponse, 'Next')
           if (nextButtonData) {
-            console.log(`  ➡️ Moving to next page...`)
+            report(`➡️ Moving to next page...`)
             const clicked = await this.buttonHandler.clickInlineButton(currentListResponse, nextButtonData)
             if (!clicked) {
-              console.log(`  ⚠️ Failed to click Next button`)
+              report(`⚠️ Failed to click Next button`)
               break
             }
             currentPage++
             await this.messageHandler.sleep(1500)
             currentListResponse = await this.messageHandler.waitForResponse(10000)
           } else {
-            console.log(`  ✓ Reached last page (page ${currentPage})`)
+            report(`✓ Reached last page (page ${currentPage})`)
             hasNextPage = false
           }
         } else {
@@ -651,9 +658,9 @@ export class BotFatherManager {
 
       this.messageHandler.removeListener()
 
-      console.log(`  ✓ Successfully fetched ${botsWithTokens.length} bot tokens across ${currentPage} page(s)`)
+      report(`✓ Fetched ${botsWithTokens.length} bot(s) across ${currentPage} page(s)`)
     } catch (error) {
-      console.log(`  ✗ Error in getAllBotsWithTokens:`, error)
+      botFatherLogger.error(`✗ Error in getAllBotsWithTokens:`, error)
       this.messageHandler.removeListener()
     }
 
