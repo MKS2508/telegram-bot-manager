@@ -1,0 +1,43 @@
+{
+  "name": "mks2508/utils",
+  "version": "0.0.1",
+  "description": "Shared utilities for telegram-bot-manager",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./logger": {
+      "types": "./dist/logger.d.ts",
+      "import": "./dist/logger.js"
+    },
+    "./result": {
+      "types": "./dist/result.d.ts",
+      "import": "./dist/result.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "rolldown --config rolldown.config.ts && tsgo --emitDeclarationOnly",
+    "typecheck": "tsgo --noEmit",
+    "dev": "bun --watch src/index.ts"
+  },
+  "dependencies": {
+    "@mks2508/better-logger": "^4.0.0",
+    "@mks2508/no-throw": "^0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "rolldown": "^1.0.0-beta.58"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

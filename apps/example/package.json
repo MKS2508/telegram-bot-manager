@@ -1,0 +1,19 @@
+{
+  "name": "mks2508/example-app",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "build": "bun build src/index.ts --outdir ./dist",
+    "typecheck": "tsgo --noEmit",
+    "start": "bun run dist/index.js"
+  },
+  "dependencies": {
+    "mks2508/core": "workspace:*",
+    "mks2508/utils": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5"
+  }
+}
