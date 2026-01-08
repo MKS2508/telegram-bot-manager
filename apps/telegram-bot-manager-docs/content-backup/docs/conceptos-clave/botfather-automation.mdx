@@ -1,0 +1,210 @@
+---
+title: Automatización de BotFather
+description: Cómo Telegram Bot Manager automatiza interacciones con @BotFather
+---
+
+# Automatización de BotFather
+
+El diferenciador clave de Telegram Bot Manager es su capacidad para automatizar interacciones con @BotFather - algo imposible con la API estándar de bots.
+
+## ¿Por Qué BotFather?
+
+@BotFather es el bot oficial para crear y gestionar bots de Telegram. Muchas operaciones críticas solo se pueden realizar a través de él:
+
+- **Crear nuevos bots** - Generar tokens de bot
+- **Configuración de bots** - Establecer comandos, descripciones, nombres
+- **Recuperación de tokens** - Obtener tokens para bots existentes
+- **Gestión de usernames** - Verificar disponibilidad, cambiar nombres
+
+## Limitaciones de la API de Bots
+
+La API estándar de bots tiene limitaciones significativas:
+
+### Lo que PUEDES hacer con la API de Bots
+
+- Enviar y recibir mensajes
+- Gestionar teclados inline
+- Manejar pagos
+- Trabajar con chats y grupos (como bot)
+
+### lo que NO PUEDES hacer con la API de Bots
+
+- Crear nuevos bots
+- Recuperar tokens de bots
+- Configurar comandos de bots
+- Cambiar descripciones de bots
+- Verificar disponibilidad de usernames
+
+Estas operaciones requieren **interacción con BotFather**.
+
+## Cómo Funciona la Automatización
+
+### Proceso Manual (Sin Automatización)
+
+<Steps>
+  **Paso 1: Abrir Telegram**
+
+  Abre manualmente Telegram y busca @BotFather
+
+  **Paso 2: Enviar Comandos**
+
+  Escribe `/newbot` y espera respuesta
+  Responde prompts para nombre del bot
+  Responde prompts para username
+
+  **Paso 3: Copiar Token**
+
+  Copia manualmente el token del bot
+  Pégalo en tu configuración
+
+  **Paso 4: Configurar Bot**
+
+  Envía `/setcommands`
+  Pega lista de comandos
+  Repite para otros settings
+</Steps>
+
+### Proceso Automatizado (Con Telegram Bot Manager)
+
+```typescript
+import { BotFatherManager } from '@mks2508/telegram-bot-manager'
+
+const botFather = new BotFatherManager(client)
+
+// Un comando crea y configura el bot
+const result = await botFather.createBot({
+  botName: 'Mi Bot',
+  botUsername: 'mibot_123bot'
+})
+
+// El token se recupera automáticamente
+console.log(result.token) // "123456:ABC-DEF..."
+```
+
+## Patrón de Manejo de Mensajes
+
+Telegram Bot Manager usa un patrón de manejo de mensajes para automatizar interacciones con BotFather:
+
+```typescript
+// Configurar listener
+this.messageHandler.setupListener()
+
+// Enviar comando
+await this.messageHandler.sendMessage('/newbot')
+
+// Esperar respuesta
+const response = await this.messageHandler.waitForResponse(10000)
+
+// Parsear respuesta
+if (response.includes('Elige un nombre')) {
+  await this.messageHandler.sendMessage(botName)
+}
+
+// Limpiar
+this.messageHandler.removeListener()
+```
+
+### Componentes Clave
+
+#### MessageHandler
+
+- **setupListener()** - Comienza a escuchar mensajes de BotFather
+- **sendMessage()** - Envía mensajes a BotFather
+- **waitForResponse()** - Espera respuesta de BotFather con timeout
+- **removeListener()** - Limpia el listener
+
+#### ButtonHandler
+
+- **clickButton()** - Haz clic en botones de teclado inline
+- **findButton()** - Encuentra botones específicos por texto
+
+## Timeouts y Confiabilidad
+
+### Timeouts
+
+Cada operación tiene timeouts configurables:
+
+```typescript
+// Esperar hasta 10 segundos por respuesta
+const response = await messageHandler.waitForResponse(10000)
+```
+
+### Reintentos
+
+Para operaciones críticas, los reintentos son automáticos:
+
+```typescript
+// Reintento automático en fallo
+const result = await botFather.createBot(config, {
+  maxRetries: 3,
+  retryDelay: 2000
+})
+```
+
+## Patrones Comunes
+
+### Patrón 1: Comando + Esperar + Responder
+
+```typescript
+// Enviar comando
+await sendMessage('/setcommands')
+
+// Esperar prompt
+await waitForResponse()
+
+// Enviar datos
+await sendMessage(commandsJson)
+```
+
+### Patrón 2: Parsear y Hacer Clic en Botones
+
+```typescript
+// Enviar comando
+await sendMessage('/mybots')
+
+// Esperar lista de bots
+const response = await waitForResponse()
+
+// Encontrar y hacer clic en botón
+await buttonHandler.clickButton('Mi Bot')
+```
+
+### Patrón 3: Extraer Datos de Respuesta
+
+```typescript
+// Crear bot
+const result = await createBot(config)
+
+// Parsear token de respuesta
+const token = extractToken(result.messages)
+```
+
+## Manejo de Errores
+
+```typescript
+try {
+  const result = await botFather.createBot(config)
+} catch (error) {
+  if (error.code === 'TIMEOUT') {
+    // BotFather no respondió
+  } else if (error.code === 'INVALID_USERNAME') {
+    // Username está tomado
+  }
+}
+```
+
+## Mejores Prácticas
+
+1. **Siempre espera respuestas** - No asumas respuestas instantáneas
+2. **Usa timeouts apropiados** - Balancea velocidad y confiabilidad
+3. **Maneja errores gracefulmente** - BotFather puede fallar
+4. **Limpia listeners** - Siempre llama `removeListener()`
+5. **Valida inputs** - Verifica usernames antes de enviar a BotFather
+
+## ¿Qué Sigue?
+
+Ahora que entiendes la automatización de BotFather:
+
+- [**Referencia de Biblioteca**](/docs/referencia-biblioteca/botfather-manager) - Documentación de API
+- [**Guía Crear Bot**](/docs/guias/crear-primer-bot) - Ejemplo práctico
+- [**Arquitectura**](/docs/conceptos-clave/arquitectura) - Diseño del sistema

@@ -1,0 +1,91 @@
+---
+title: Introducción
+description: Comienza con Telegram Bot Manager - aprende qué es, por qué usarlo y cómo configurarlo
+---
+
+# Introducción
+
+¡Bienvenido a Telegram Bot Manager! Esta guía te ayudará a entender qué es esta herramienta y te pondrá en marcha rápidamente.
+
+## ¿Qué es Telegram Bot Manager?
+
+**@mks2508/telegram-bot-manager** es una herramienta TypeScript de doble propósito:
+
+1. **CLI** - Una interfaz de línea de comandos para automatización rápida de bots
+2. **Biblioteca** - Una biblioteca TypeScript para gestión programática de bots
+
+Utiliza **GramJS** (implementación de MTProto de Telegram) para interactuar directamente con el protocolo de Telegram, permitiendo la automatización de tareas imposibles con la API estándar de bots.
+
+## ¿Qué Puedes Hacer?
+
+### Automatización de BotFather
+- Crea nuevos bots programáticamente
+- Configura comandos, descripciones y texto "acerca de" de los bots
+- Recupera tokens de bots automáticamente
+- Verifica disponibilidad de usernames antes de crear
+
+### Gestión de Grupos y Foros
+- Crea supergrupos y conviértelos en foros
+- Crea y gestiona topics de foro con colores personalizados
+- Configura permisos de admin para bots
+- Genera y gestiona enlaces de invitación
+
+### Gestión de Entornos
+- Gestiona múltiples bots con diferentes entornos
+- Cambio fácil entre bots
+- Configuración type-safe con TypeScript
+
+## ¿Por Qué Usar Telegram Bot Manager?
+
+### Limitaciones de la API de Bots
+
+La API estándar de bots de Telegram es potente pero tiene limitaciones:
+
+- Algunas operaciones solo se pueden hacer vía @BotFather
+- La interacción manual es lenta y propensa a errores
+- No hay acceso programático a la creación de bots
+- La recuperación de tokens requiere copiar y pegar manualmente
+
+### Cómo Ayuda Telegram Bot Manager
+
+Telegram Bot Manager cierra estas brechas:
+
+- **Acceso MTProto** - Acceso directo al protocolo vía GramJS, no limitado por la API de bots
+- **BotFather Automatizado** - Interacción programática con @BotFather
+- **Type-Safe** - Soporte completo de TypeScript con autocompletado
+- **Production Ready** - Probado en combate con manejo exhaustivo de errores
+
+## Casos de Uso
+
+### Automatización
+- Pipelines CI/CD para despliegue de bots
+- Aprovisionamiento automático de bots para desarrollo
+- Actualizaciones masivas de configuración de bots
+
+### Desarrollo
+- Creación rápida de bots para pruebas
+- Gestión de bots basada en entornos
+- Automatización de configuración de desarrollo local
+
+### Gestión
+- Coordinación multi-bot
+- Configuración centralizada
+- Cambio fácil entre bots
+
+## Prerrequisitos
+
+Antes de comenzar, necesitarás:
+
+1. **Cuenta de Telegram** - Una cuenta de Telegram válida
+2. **Credenciales de API** - `apiId` y `apiHash` de [my.telegram.org](https://my.telegram.org)
+3. **Node.js 18+** - Para uso de CLI, o un proyecto TypeScript para uso como biblioteca
+4. **Número de Teléfono** - El número de teléfono asociado a tu cuenta de Telegram
+
+## ¿Qué Sigue?
+
+¿Listo para comenzar? Elige tu camino:
+
+- [**Instalación**](/docs/introduccion/instalacion) - Instala la CLI o agrégala a tu proyecto
+- [**Inicio Rápido**](/docs/introduccion/inicio-rapido) - Crea tu primer bot en 5 minutos
+- [**Autenticación**](/docs/introduccion/autenticacion) - Entiende la autenticación de Telegram
+- [**Conceptos Clave**](/docs/conceptos-clave) - Aprende cómo funciona por dentro

@@ -1,0 +1,543 @@
+---
+title: Referencia de Biblioteca
+description: Documentación completa de la API de @mks2508/telegram-bot-manager
+---
+
+import { Tabs } from 'fumadocs-ui/components/tabs';
+
+# Referencia de Biblioteca
+
+Documentación completa de la API de `@mks2508/telegram-bot-manager`. Esta biblioteca proporciona clases y métodos para automatizar la gestión de bots de Telegram vía BotFather usando GramJS (MTProto).
+
+## Clases Principales
+
+<Tabs items={['BootstrapClient', 'BotFatherManager', 'GroupManager', 'TopicManager', 'EnvManager']}>
+  <Tab value="BootstrapClient">
+    ## BootstrapClient
+
+    Cliente wrapper de GramJS para operaciones MTProto. Maneja la conexión, autorización y sesión de Telegram.
+
+    ### Constructor
+
+    ```typescript
+    import { BootstrapClient } from '@mks2508/telegram-bot-manager';
+
+    const client = new BootstrapClient({
+      apiId: 12345,                    // Tu API ID de my.telegram.org
+      apiHash: 'your_api_hash',        // Tu API Hash de my.telegram.org
+      sessionPath?: string             // Opcional: ruta personalizada para la sesión
+    });
+    ```
+
+    ### Métodos Principales
+
+    #### `connect(options?)`
+    Conecta a Telegram.
+
+    ```typescript
+    await client.connect({ muteLogs?: boolean });
+    ```
+
+    #### `ensureAuthorized(options?)`
+    Asegura que el usuario está autorizado. Si no, solicita número de teléfono y código.
+
+    ```typescript
+    const isAuthorized = await client.ensureAuthorized({ muteLogs?: boolean });
+    // Devuelve: true si está autorizado, false si falló
+    ```
+
+    #### `disconnect()`
+    Desconecta de Telegram de manera segura.
+
+    ```typescript
+    await client.disconnect();
+    ```
+
+    #### `getMe()`
+    Obtiene información del usuario actual.
+
+    ```typescript
+    const me = await client.getMe();
+    // Devuelve: { id: number, username?: string, firstName: string } | null
+    ```
+
+    #### `getDialogs()`
+    Obtiene lista de chats.
+
+    ```typescript
+    const dialogs = await client.getDialogs();
+    // Devuelve: Array<{ id: number, name: string, username?: string }>
+    ```
+
+    #### `createChannel(title, about?, megagroup?)`
+    Crea un canal o supergrupo.
+
+    ```typescript
+    const channel = await client.createChannel(
+      'Mi Grupo',           // title
+      'Descripción',        // about (opcional)
+      true                  // megagroup = true para supergrupo
+    );
+    // Devuelve: { chatId?: number, title?: string }
+    ```
+
+    #### `editAdminRights(channelId, userId, rights)`
+    Edita permisos de administrador en un canal.
+
+    ```typescript
+    const result = await client.editAdminRights(
+      channelId,
+      userId,
+      {
+        manageTopics: true,
+        deleteMessages: true,
+        editMessages: false,
+        inviteUsers: true,
+        banUsers: false,
+        pinMessages: false,
+        addAdmins: false
+      }
+    );
+    // Devuelve: { success: boolean, error?: string }
+    ```
+
+    #### `exportInviteLink(channelId)`
+    Exporta enlace de invitación de un canal.
+
+    ```typescript
+    const result = await client.exportInviteLink(channelId);
+    // Devuelve: { success: boolean, link?: string, error?: string }
+    ```
+
+    #### `getClient()`
+    Obtiene el cliente GramJS subyacente para operaciones avanzadas.
+
+    ```typescript
+    const telegramClient = client.getClient();
+    // Devuelve: TelegramClient (de GramJS)
+    ```
+
+  </Tab>
+
+  <Tab value="BotFatherManager">
+    ## BotFatherManager
+
+    Gestiona la automatización de @BotFather para crear y configurar bots.
+
+    ### Constructor
+
+    ```typescript
+    import { BotFatherManager } from '@mks2508/telegram-bot-manager';
+
+    const botFather = new BotFatherManager(client);
+    ```
+
+    ### Métodos
+
+    #### `createBot(options)`
+    Crea un nuevo bot vía BotFather.
+
+    ```typescript
+    const result = await botFather.createBot({
+      botName: 'Mi Bot',
+      botUsername: 'mi_bot123bot'
+    });
+
+    if (result.success) {
+      console.log('Token:', result.botToken);
+    }
+    // Devuelve: { success: boolean, botToken?: string, error?: string }
+    ```
+
+    #### `listBots()`
+    Lista todos los bots (primera página).
+
+    ```typescript
+    const result = await botFather.listBots();
+    // Devuelve: { success: boolean, bots: IBotInfo[], error?: string }
+    ```
+
+    #### `listAllBots()`
+    Lista **todos** los bots con paginación automática.
+
+    ```typescript
+    const result = await botFather.listAllBots();
+    // Devuelve: { success: boolean, bots: IBotInfo[], error?: string }
+    ```
+
+    #### `getBotInfo(botUsername)`
+    Obtiene información de un bot específico.
+
+    ```typescript
+    const result = await botFather.getBotInfo('mi_bot123bot');
+    // Devuelve: { success: boolean, bot: IBotInfo, error?: string }
+    ```
+
+    #### `getBotToken(botUsername)`
+    Obtiene el token de un bot.
+
+    ```typescript
+    const result = await botFather.getBotToken('mi_bot123bot');
+    // Devuelve: { success: boolean, token?: string }
+    ```
+
+    #### `getAllBotsWithTokens(options?)`
+    Obtiene todos los bots con sus tokens (itera con paginación).
+
+    ```typescript
+    const bots = await botFather.getAllBotsWithTokens({
+      onProgress: (msg) => console.log(msg)  // Opcional: callback de progreso
+    });
+    // Devuelve: Array<IBotInfo & { token: string }>
+    ```
+
+    #### `setCommands(botUsername, commands)`
+    Configura los comandos del bot vía BotFather.
+
+    ```typescript
+    const result = await botFather.setCommands('mi_bot123bot', [
+      { command: 'start', description: 'Inicia el bot' },
+      { command: 'help', description: 'Muestra ayuda' },
+      { command: 'settings', description: 'Configuración' }
+    ]);
+    // Devuelve: { success: boolean, commands?: IBotCommand[], error?: string }
+    ```
+
+    #### `setDescription(botUsername, description)`
+    Configura la descripción del bot.
+
+    ```typescript
+    const result = await botFather.setDescription(
+      'mi_bot123bot',
+      'Un bot útil que hace cosas increíbles'
+    );
+    // Devuelve: { success: boolean, description?: string, error?: string }
+    ```
+
+    #### `setAboutText(botUsername, about)`
+    Configura el texto "About" del bot.
+
+    ```typescript
+    const result = await botFather.setAboutText(
+      'mi_bot123bot',
+      'Este bot fue creado con telegram-bot-manager'
+    );
+    // Devuelve: { success: boolean, about?: string, error?: string }
+    ```
+
+    #### `setName(botUsername, name)`
+    Cambia el nombre del bot.
+
+    ```typescript
+    const result = await botFather.setName('mi_bot123bot', 'Mi Nuevo Nombre');
+    // Devuelve: { success: boolean, name?: string, error?: string }
+    ```
+
+    #### `checkUsernameAvailable(botUsername)`
+    Verifica si un username está disponible.
+
+    ```typescript
+    const available = await botFather.checkUsernameAvailable('mi_bot123bot');
+    // Devuelve: boolean
+    ```
+
+  </Tab>
+
+  <Tab value="GroupManager">
+    ## GroupManager
+
+    Gestiona la creación de grupos, supergrupos y foros.
+
+    ### Constructor
+
+    ```typescript
+    import { GroupManager } from '@mks2508/telegram-bot-manager';
+
+    const groupManager = new GroupManager(client);
+    ```
+
+    ### Métodos
+
+    #### `createSupergroup(options)`
+    Crea un supergrupo (puede ser convertido a foro).
+
+    ```typescript
+    const result = await groupManager.createSupergroup({
+      title: 'Mi Foro',
+      description: 'Descripción del foro',
+      forumMode: true  // true para crear como foro
+    });
+
+    if (result.success) {
+      console.log('Chat ID:', result.chatId);
+      console.log('Invite Link:', result.inviteLink);
+    }
+    // Devuelve: GroupCreationResult
+    ```
+
+    #### `convertToForum(channelId)`
+    Convierte un supergrupo existente a foro.
+
+    ```typescript
+    const result = await groupManager.convertToForum(channelId);
+    // Devuelve: { success: boolean, error?: string }
+    ```
+
+    #### `promoteBotToAdmin(channelId, botUsername, permissions)`
+    Promueve un bot a administrador con permisos específicos.
+
+    ```typescript
+    const result = await groupManager.promoteBotToAdmin(
+      channelId,
+      'mi_bot123bot',
+      {
+        canManageTopics: true,
+        canDeleteMessages: true,
+        canEditMessages: false,
+        canInviteUsers: true,
+        canBanUsers: false,
+        canPinMessages: true
+      }
+    );
+    // Devuelve: { success: boolean, error?: string }
+    ```
+
+    #### `getUserForums()`
+    Lista todos los foros del usuario.
+
+    ```typescript
+    const forums = await groupManager.getUserForums();
+    // Devuelve: ForumGroupInfo[]
+    ```
+
+  </Tab>
+
+  <Tab value="TopicManager">
+    ## TopicManager
+
+    Gestiona la creación de topics en foros de Telegram usando el Bot API.
+
+    ### Constructor
+
+    ```typescript
+    import { TopicManager } from '@mks2508/telegram-bot-manager';
+
+    const topicManager = new TopicManager(botToken);
+    ```
+
+    ### Métodos
+
+    #### `createTopic(options)`
+    Crea un topic en un foro.
+
+    ```typescript
+    const result = await topicManager.createTopic({
+      chatId: -1001234567890,
+      name: 'Logs',
+      iconColor: 0x6FB9F0  // Opcional: color en formato hexadecimal
+    });
+
+    if (result.success) {
+      console.log('Topic ID:', result.threadId);
+    }
+    // Devuelve: TopicCreationResult
+    ```
+
+    #### `createTopics(chatId, topicNames)`
+    Crea múltiples topics a la vez.
+
+    ```typescript
+    const results = await topicManager.createTopics(
+      -1001234567890,
+      ['General', 'Control', 'Logs', 'Config', 'Bugs']
+    );
+    // Devuelve: Array<{ name: string, result: TopicCreationResult }>
+    ```
+
+    #### `createDefaultTopics(chatId)`
+    Crea los topics por defecto del sistema.
+
+    ```typescript
+    const results = await topicManager.createDefaultTopics(-1001234567890);
+    // Crea: General, Control, Logs, Config, Bugs
+    ```
+
+  </Tab>
+
+  <Tab value="EnvManager">
+    ## EnvManager
+
+    Gestiona archivos .env para configuraciones multi-bot.
+
+    ### Constructor
+
+    ```typescript
+    import { EnvManager } from '@mks2508/telegram-bot-manager';
+
+    const envManager = new EnvManager();
+    ```
+
+    ### Métodos
+
+    #### `addBot(botUsername, token, environment, metadata?)`
+    Agrega un bot a la configuración.
+
+    ```typescript
+    envManager.addBot(
+      'mi_bot123bot',
+      '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11',
+      'local',
+      {
+        name: 'Mi Bot',
+        chatId: -1001234567890,
+        topics: { control: 12345, logs: 12346 }
+      }
+    );
+    ```
+
+    #### `listBots()`
+    Lista todos los bots configurados.
+
+    ```typescript
+    const bots = envManager.listBots();
+    // Devuelve: IBotConfigInfo[]
+    ```
+
+    #### `botExists(botUsername)`
+    Verifica si un bot existe en la configuración.
+
+    ```typescript
+    const exists = envManager.botExists('mi_bot123bot');
+    // Devuelve: boolean
+    ```
+
+    #### `getActiveBot()`
+    Obtiene el bot activo actual.
+
+    ```typescript
+    const activeBot = envManager.getActiveBot();
+    // Devuelve: string | null (username del bot activo)
+    ```
+
+    #### `setActiveBot(botUsername)`
+    Establece un bot como activo.
+
+    ```typescript
+    envManager.setActiveBot('mi_bot123bot');
+    ```
+
+    #### `getBotConfig(botUsername, environment)`
+    Obtiene la configuración de un bot.
+
+    ```typescript
+    const config = envManager.getBotConfig('mi_bot123bot', 'local');
+    // Devuelve: IBotEnvironmentConfig | undefined
+    ```
+
+    #### `removeBot(botUsername)`
+    Elimina un bot de la configuración.
+
+    ```typescript
+    envManager.removeBot('mi_bot123bot');
+    ```
+
+    #### `updateBotMetadata(botUsername, metadata)`
+    Actualiza los metadatos de un bot.
+
+    ```typescript
+    envManager.updateBotMetadata('mi_bot123bot', {
+      name: 'Mi Bot Actualizado',
+      chatId: -1001234567890
+    });
+    ```
+
+  </Tab>
+</Tabs>
+
+## Tipos
+
+### IBotInfo
+
+Información de un bot.
+
+```typescript
+interface IBotInfo {
+  username: string;      // @username del bot
+  name: string;          // Nombre del bot
+  description?: string;  // Descripción
+  about?: string;        // Texto About
+}
+```
+
+### IBotCommand
+
+Comando de bot.
+
+```typescript
+interface IBotCommand {
+  command: string;       // Comando sin /
+  description: string;   // Descripción del comando
+}
+```
+
+### ICreateBotOptions
+
+Opciones para crear un bot.
+
+```typescript
+interface ICreateBotOptions {
+  botName: string;       // Nombre del bot
+  botUsername: string;   // Username (debe terminar en "bot")
+}
+```
+
+### Environment
+
+Entornos soportados.
+
+```typescript
+type Environment = 'local' | 'staging' | 'production';
+```
+
+## Configuración
+
+### loadCommandsConfig(path)
+
+Carga configuración de comandos desde un archivo JSON.
+
+```typescript
+import { loadCommandsConfig } from '@mks2508/telegram-bot-manager';
+
+const commands = loadCommandsConfig('./commands.json');
+```
+
+### loadTopicsConfig(path)
+
+Carga configuración de topics desde un archivo JSON.
+
+```typescript
+import { loadTopicsConfig } from '@mks2508/telegram-bot-manager';
+
+const topics = loadTopicsConfig('./topics.json');
+```
+
+### getDefaultCommands()
+
+Obtiene los comandos por defecto.
+
+```typescript
+import { getDefaultCommands } from '@mks2508/telegram-bot-manager';
+
+const commands = getDefaultCommands();
+```
+
+### getDefaultTopics()
+
+Obtiene los topics por defecto.
+
+```typescript
+import { getDefaultTopics } from '@mks2508/telegram-bot-manager';
+
+const topics = getDefaultTopics();
+// General, Control, Logs, Config, Bugs
+```

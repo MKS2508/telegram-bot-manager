@@ -1,0 +1,125 @@
+---
+title: Telegram Bot Manager
+description: Biblioteca TypeScript y CLI para automatizar la gestión de bots de Telegram vía BotFather usando GramJS (MTProto)
+---
+
+import { Cards, Card } from 'fumadocs-ui/components/card';
+
+# Telegram Bot Manager
+
+Biblioteca TypeScript y CLI para automatizar la gestión de bots de Telegram vía BotFather usando GramJS (MTProto).
+
+<Cards>
+  <Card
+    title="Automatización de BotFather"
+    href="/docs/introduccion"
+    icon="🤖"
+  >
+    Automatiza interacciones con BotFather - crea bots, configura comandos, describe y recupera tokens programáticamente.
+  </Card>
+
+  <Card
+    title="CLI y Biblioteca"
+    href="/docs/introduccion/instalacion"
+    icon="📦"
+  >
+    Usa vía npx para automatización rápida o importa como biblioteca TypeScript para control programático.
+  </Card>
+
+  <Card
+    title="Soporte Multi-Bot"
+    href="/docs/guias/configuracion-multi-bot"
+    icon="🔧"
+  >
+    Gestiona múltiples bots de Telegram con configuración basada en entornos y cambio fácil.
+  </Card>
+
+  <Card
+    title="Foros y Topics"
+    href="/docs/guias/foros-y-topics"
+    icon="💬"
+  >
+    Crea y gestiona grupos de foro con topics personalizados, colores y permisos de admin.
+  </Card>
+</Cards>
+
+## Características
+
+### Automatización de BotFather
+
+Automatiza tareas imposibles con la API estándar de bots:
+
+- **Crear Bots** - Crea nuevos bots programáticamente con nombres y usernames personalizados
+- **Configurar Comandos** - Establece comandos de bot con descripciones
+- **Gestionar Metadatos** - Actualiza descripciones, texto "acerca de" y nombres visibles
+- **Recuperar Tokens** - Obtiene tokens de bot para tus bots configurados
+- **Verificar Disponibilidad** - Verifica disponibilidad de username antes de crear
+
+### Gestión de Grupos y Foros
+
+- **Crear Supergrupos** - Construye supergrupos con capacidades de foro
+- **Topics de Foro** - Crea y gestiona topics de foro con colores e iconos personalizados
+- **Permisos de Admin** - Control detallado de permisos de admin de bots
+- **Enlaces de Invitación** - Genera y gestiona enlaces de invitación a grupos
+
+### Gestión de Entornos
+
+- **Multi-Entorno** - Soporte para entornos dev, staging, production
+- **Cambio Fácil** - Cambia rápidamente entre bots activos
+- **Herramientas de Migración** - Migra desde configuraciones .env antiguas
+- **Type-Safe** - Soporte completo de TypeScript con tipos generados
+
+## Inicio Rápido
+
+### Uso vía CLI
+
+```bash
+# Instala y ejecuta el bootstrap interactivo
+npx @mks2508/telegram-bot-manager bootstrap
+
+# Lista bots configurados
+npx @mks2508/telegram-bot-manager bot list
+
+# Configura comandos del bot
+npx @mks2508/telegram-bot-manager configure commands mibot
+```
+
+### Uso como Biblioteca
+
+```ts
+import { BootstrapClient, BotFatherManager } from '@mks2508/telegram-bot-manager'
+
+const client = new BootstrapClient({
+  apiId: 12345,
+  apiHash: 'tu-api-hash'
+})
+
+await client.ensureAuthorized()
+
+const botFather = new BotFatherManager(client)
+const result = await botFather.createBot({
+  botName: 'Mi Bot',
+  botUsername: 'mibot_123bot'
+})
+
+console.log(result.token) // Tu token de bot
+```
+
+## ¿Por Qué Telegram Bot Manager?
+
+La API de bots de Telegram es potente, pero tiene limitaciones. Algunas operaciones solo se pueden hacer a través de BotFather, y la interacción manual es lenta y propensa a errores.
+
+**Telegram Bot Manager cierra esta brecha** mediante:
+
+1. **Uso de MTProto vía GramJS** - Acceso directo al protocolo, no limitado por la API de bots
+2. **Automatización de BotFather** - Interacción programática con BotFather
+3. **Type-Safe** - TypeScript completo con autocompletado
+4. **Production Ready** - Probado en combate con manejo exhaustivo de errores
+
+## ¿Qué Sigue?
+
+- [**Introducción**](/docs/introduccion) - Introducción y descripción general
+- [**Instalación**](/docs/introduccion/instalacion) - Configura la CLI o biblioteca
+- [**Inicio Rápido**](/docs/introduccion/inicio-rapido) - Crea tu primer bot en 5 minutos
+- [**Conceptos Clave**](/docs/conceptos-clave) - Aprende cómo funciona
+- [**Referencia de API**](/docs/referencia-biblioteca) - Explora la API completa

@@ -1,0 +1,199 @@
+---
+title: GramJS & MTProto
+description: Entendiendo el protocolo y biblioteca subyacente
+---
+
+# GramJS & MTProto
+
+Telegram Bot Manager está construido sobre GramJS, que implementa el protocolo MTProto de Telegram. Esta sección explica el stack tecnológico.
+
+## ¿Qué es MTProto?
+
+**MTProto** es el protocolo nativo de Telegram, diseñado para:
+
+- **Velocidad** - Optimizado para redes móviles
+- **Seguridad** - Encriptación end-to-end
+- **Confiabilidad** - Maneja problemas de redes gracefulmente
+
+### API de Bots vs MTProto
+
+| Feature | API de Bots | MTProto |
+|---------|-------------|---------|
+| **Propósito** | Operaciones de bots | Acceso completo a Telegram |
+| **Autenticación** | Token de bot | Credenciales de usuario |
+| **Capacidades** | Específicas de bots | Operaciones de usuario + bot |
+| **Creación de Bots** | ❌ No posible | ✅ Vía @BotFather |
+| **Acciones de Usuario** | ❌ No posible | ✅ Acceso completo |
+
+## ¿Qué es GramJS?
+
+**GramJS** es una biblioteca TypeScript/JavaScript que implementa MTProto:
+
+```typescript
+// TelegramClient de GramJS
+import { TelegramClient } from 'telegram'
+
+const client = new TelegramClient(
+  new StringSession(''),
+  apiId,
+  apiHash,
+  { connectionRetries: 5 }
+)
+```
+
+### ¿Por Qué GramJS?
+
+- **Soporte TypeScript** - Type safety completo
+- **Moderno** - Desarrollo y mantenimiento activos
+- **Completo** - Soporta todas las features de MTProto
+- **Confiabilidad** - Probado en producción
+
+## BootstrapClient
+
+Telegram Bot Manager envuelve GramJS con `BootstrapClient`:
+
+```typescript
+import { BootstrapClient } from '@mks2508/telegram-bot-manager'
+
+const client = new BootstrapClient({
+  apiId: 12345,
+  apiHash: 'tu-api-hash'
+})
+
+// Maneja autenticación automáticamente
+await client.ensureAuthorized()
+
+// ¡Listo para usar!
+const me = await client.getMe()
+```
+
+### Features Clave
+
+#### Persistencia de Sesión
+
+```typescript
+// Primera ejecución - solicita credenciales
+await client.ensureAuthorized()
+
+// Sesión guardada en ~/.mks-telegram-bot/session.txt
+
+// Siguiente ejecución - usa sesión guardada
+await client.ensureAuthorized()  // ¡Sin prompts!
+```
+
+#### Métodos Helper
+
+```typescript
+// Obtener info de usuario actual
+const me = await client.getMe()
+
+// Listar diálogos (chats)
+const dialogs = await client.getDialogs()
+
+// Crear canal/grupo
+const channel = await client.createChannel({
+  title: 'Mi Grupo',
+  megagroup: true
+})
+
+// Editar derechos de admin
+await client.editAdminRights({
+  userId: botId,
+  rights: { ... }
+})
+```
+
+## Operaciones MTProto
+
+### Enviar Mensajes
+
+```typescript
+// Vía GramJS directamente
+await client.sendMessage('botfather', { message: '/newbot' })
+
+// Vía Telegram Bot Manager
+await messageHandler.sendMessage('/newbot')
+```
+
+### Recibir Mensajes
+
+```typescript
+// Vía GramJS directamente
+client.addEventHandler((event) => {
+  console.log(event.message)
+})
+
+// Vía Telegram Bot Manager
+const response = await messageHandler.waitForResponse(10000)
+```
+
+## Trabajando con BigInt
+
+MTProto usa enteros de 64-bit para IDs:
+
+```typescript
+import BigInteger from 'big-integer'
+
+// Los IDs de chat son BigInteger
+const chatId = BigInteger('1234567890123456')
+
+// Convertir a string para almacenamiento
+const idString = chatId.toString()
+
+// Parsear de vuelta
+const parsedId = BigInteger(idString)
+```
+
+## Gestión de Conexión
+
+### Reintentos de Conexión
+
+```typescript
+const client = new BootstrapClient({
+  apiId: 12345,
+  apiHash: 'tu-api-hash',
+  connectionRetries: 5  // Reintentar 5 veces
+})
+```
+
+### Manejo de Timeouts
+
+```typescript
+try {
+  const result = await client.getDialogs()
+} catch (error) {
+  if (error.message.includes('TIMEDOUT')) {
+    // Manejar timeout
+  }
+}
+```
+
+## Archivos de Sesión
+
+### Estructura de Sesión
+
+```
+~/.mks-telegram-bot/
+└── session.txt    # Datos de sesión encriptados
+```
+
+### Contenido de Sesión
+
+- **Auth Key** - Clave de encriptación
+- **Server Salt** - Para seguridad
+- **Session ID** - Identificador único
+- **Sequence Numbers** - Ordenamiento de mensajes
+
+### Seguridad de Sesión
+
+- Encriptado con tus credenciales de API
+- Nunca compartas públicamente
+- Agrega a `.gitignore`
+
+## ¿Qué Sigue?
+
+Ahora entiendes el stack tecnológico:
+
+- [**Automatización de BotFather**](/docs/conceptos-clave/automatizacion-botfather) - Cómo se usa
+- [**Arquitectura**](/docs/conceptos-clave/arquitectura) - Diseño del sistema
+- [**API de BootstrapClient**](/docs/referencia-biblioteca/bootstrap-client) - Referencia completa de API

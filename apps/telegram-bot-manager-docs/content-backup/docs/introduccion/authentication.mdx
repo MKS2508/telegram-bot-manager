@@ -1,0 +1,183 @@
+---
+title: Autenticación
+description: Entiende cómo funciona la autenticación de Telegram con Telegram Bot Manager
+---
+
+# Autenticación
+
+Telegram Bot Manager usa MTProto (protocolo nativo de Telegram) vía GramJS para autenticación. Esto es diferente de la API de bots y requiere entender cómo funciona la autenticación de usuarios de Telegram.
+
+## Cómo Funciona la Autenticación
+
+### Gestión de Sesiones
+
+Telegram Bot Manager mantiene un archivo de sesión para mantenerte autenticado:
+
+<Steps>
+  **Primera Ejecución**
+
+  - Solicita tu número de teléfono
+  - Envía código de verificación vía Telegram
+  - Solicita contraseña 2FA (si está habilitada)
+  - Crea archivo de sesión en `~/.mks-telegram-bot/session.txt`
+
+  **Ejecuciones Posteriores**
+
+  - Lee archivo de sesión existente
+  - Se autentica automáticamente
+  - No se requieren solicitudes
+</Steps>
+
+### Ubicación del Archivo de Sesión
+
+```
+~/.mks-telegram-bot/
+└── session.txt    # Datos de sesión encriptados
+```
+
+<Callout type="warning">
+**¡Protege tu archivo de sesión!**
+
+El archivo de sesión contiene credenciales de autenticación. Nunca lo compartas públicamente ni lo envíes a control de versiones.
+</Callout>
+
+## Flujo de Autenticación
+
+### Uso como Biblioteca
+
+```typescript
+import { BootstrapClient } from '@mks2508/telegram-bot-manager'
+
+const client = new BootstrapClient({
+  apiId: 12345,
+  apiHash: 'tu-api-hash'
+})
+
+// Primera vez: Solicitudes interactivas
+// Veces posteriores: Usa sesión guardada
+await client.ensureAuthorized()
+
+// ¡Ahora estás autenticado!
+const me = await client.getMe()
+console.log('Autenticado como:', me.username)
+```
+
+### Uso vía CLI
+
+La CLI maneja la autenticación automáticamente:
+
+```bash
+# Primera ejecución - solicitará credenciales
+npx @mks2508/telegram-bot-manager bootstrap
+
+# Ingresa tu número de teléfono: +1234567890
+# Ingresa el código que recibiste: 12345
+# Ingresa tu contraseña: ******
+
+# Ejecuciones posteriores - sin solicitudes
+npx @mks2508/telegram-bot-manager bootstrap
+# Usa sesión guardada automáticamente
+```
+
+## Autenticación de Dos Factores
+
+Si tienes **Autenticación de Dos Factores (2FA)** habilitada (también llamada "Contraseña en la nube" en Telegram), se te solicitará:
+
+```bash
+# Después de ingresar el código de verificación
+# Por favor ingresa tu contraseña en la nube: ******
+```
+
+<Callout type="info">
+**¿Sin 2FA?**
+
+Si no has configurado 2FA, no se te solicitará contraseña. Considera habilitarla para mayor seguridad.
+</Callout>
+
+## Solución de Problemas de Autenticación
+
+### "Archivo de sesión inválido"
+
+Si tu sesión se vuelve inválida (ej: después de cambiar contraseña):
+
+```bash
+# Eliminar el archivo de sesión
+rm ~/.mks-telegram-bot/session.txt
+
+# Re-autenticarse
+npx @mks2508/telegram-bot-manager bootstrap
+```
+
+### "Número de teléfono inválido"
+
+Asegúrate de usar el formato correcto:
+
+```bash
+# Formatos correctos
++1234567890    # Con prefijo +
+1234567890     # Sin prefijo +
+
+# Formatos incorrectos
++1 (234) 567-890   # Sin espacios o paréntesis
++123 456 7890      # Sin espacios
+```
+
+### "Código inválido"
+
+- Asegúrate de usar el código enviado vía la app de Telegram
+- Los códigos expiran rápidamente - úsalo inmediatamente
+- Solicita un nuevo código si es necesario
+
+## Mejores Prácticas de Seguridad
+
+1. **Nunca compartas** tu `api_hash`
+2. **Nunca envíes** tu archivo de sesión a version control
+3. **Usa variables de entorno** para credenciales de API
+4. **Habilita 2FA** en tu cuenta de Telegram
+5. **Rota credenciales** si se comprometen
+
+### Ejemplo de .gitignore
+
+```
+# Telegram Bot Manager
+.mks-telegram-bot/
+*.session
+session.txt
+```
+
+## Credenciales de API vs Tokens de Bot
+
+Es importante entender la diferencia:
+
+### Credenciales de API (`apiId`, `apiHash`)
+
+- Usadas para **autenticación de usuario** (tu cuenta de Telegram)
+- Obtenidas de [my.telegram.org](https://my.telegram.org)
+- Requeridas para acceso MTProto
+- Dan acceso para interactuar con @BotFather
+
+### Tokens de Bot
+
+- Usados para **autenticación de bot** (la identidad de tu bot)
+- Obtenidos de @BotFather después de crear el bot
+- Usados con la API estándar de bots
+- Requeridos para que tu bot reciba actualizaciones
+
+```typescript
+// Credenciales de API para TU cuenta (para crear bots)
+const client = new BootstrapClient({
+  apiId: 12345,
+  apiHash: 'tu-api-hash'  // Tus credenciales
+})
+
+// Token de bot para TU BOT (para enviar mensajes)
+const botToken = '123456:ABC-DEF...' // Token del bot
+```
+
+## ¿Qué Sigue?
+
+Ahora que entiendes la autenticación:
+
+- [**Inicio Rápido**](/docs/introduccion/inicio-rapido) - Crea tu primer bot
+- [**Conceptos Clave**](/docs/conceptos-clave) - Aprende cómo funciona la automatización de BotFather
+- [**API de BootstrapClient**](/docs/referencia-biblioteca/bootstrap-client) - Referencia de API

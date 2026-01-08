@@ -1,0 +1,543 @@
+---
+title: Library Reference
+description: Complete API documentation for @mks2508/telegram-bot-manager
+---
+
+import { Tabs } from 'fumadocs-ui/components/tabs';
+
+# Library Reference
+
+Complete API documentation for `@mks2508/telegram-bot-manager`. This library provides classes and methods to automate Telegram bot management via BotFather using GramJS (MTProto).
+
+## Core Classes
+
+<Tabs items={['BootstrapClient', 'BotFatherManager', 'GroupManager', 'TopicManager', 'EnvManager']}>
+  <Tab value="BootstrapClient">
+    ## BootstrapClient
+
+    GramJS client wrapper for MTProto operations. Handles connection, authorization, and Telegram session.
+
+    ### Constructor
+
+    ```typescript
+    import { BootstrapClient } from '@mks2508/telegram-bot-manager';
+
+    const client = new BootstrapClient({
+      apiId: 12345,                    // Your API ID from my.telegram.org
+      apiHash: 'your_api_hash',        // Your API Hash from my.telegram.org
+      sessionPath?: string             // Optional: custom session path
+    });
+    ```
+
+    ### Main Methods
+
+    #### `connect(options?)`
+    Connects to Telegram.
+
+    ```typescript
+    await client.connect({ muteLogs?: boolean });
+    ```
+
+    #### `ensureAuthorized(options?)`
+    Ensures the user is authorized. If not, prompts for phone number and code.
+
+    ```typescript
+    const isAuthorized = await client.ensureAuthorized({ muteLogs?: boolean });
+    // Returns: true if authorized, false if failed
+    ```
+
+    #### `disconnect()`
+    Safely disconnects from Telegram.
+
+    ```typescript
+    await client.disconnect();
+    ```
+
+    #### `getMe()`
+    Gets current user information.
+
+    ```typescript
+    const me = await client.getMe();
+    // Returns: { id: number, username?: string, firstName: string } | null
+    ```
+
+    #### `getDialogs()`
+    Gets chat list.
+
+    ```typescript
+    const dialogs = await client.getDialogs();
+    // Returns: Array<{ id: number, name: string, username?: string }>
+    ```
+
+    #### `createChannel(title, about?, megagroup?)`
+    Creates a channel or supergroup.
+
+    ```typescript
+    const channel = await client.createChannel(
+      'My Group',           // title
+      'Description',        // about (optional)
+      true                  // megagroup = true for supergroup
+    );
+    // Returns: { chatId?: number, title?: string }
+    ```
+
+    #### `editAdminRights(channelId, userId, rights)`
+    Edits admin permissions in a channel.
+
+    ```typescript
+    const result = await client.editAdminRights(
+      channelId,
+      userId,
+      {
+        manageTopics: true,
+        deleteMessages: true,
+        editMessages: false,
+        inviteUsers: true,
+        banUsers: false,
+        pinMessages: false,
+        addAdmins: false
+      }
+    );
+    // Returns: { success: boolean, error?: string }
+    ```
+
+    #### `exportInviteLink(channelId)`
+    Exports a channel invite link.
+
+    ```typescript
+    const result = await client.exportInviteLink(channelId);
+    // Returns: { success: boolean, link?: string, error?: string }
+    ```
+
+    #### `getClient()`
+    Gets the underlying GramJS client for advanced operations.
+
+    ```typescript
+    const telegramClient = client.getClient();
+    // Returns: TelegramClient (from GramJS)
+    ```
+
+  </Tab>
+
+  <Tab value="BotFatherManager">
+    ## BotFatherManager
+
+    Manages @BotFather automation for creating and configuring bots.
+
+    ### Constructor
+
+    ```typescript
+    import { BotFatherManager } from '@mks2508/telegram-bot-manager';
+
+    const botFather = new BotFatherManager(client);
+    ```
+
+    ### Methods
+
+    #### `createBot(options)`
+    Creates a new bot via BotFather.
+
+    ```typescript
+    const result = await botFather.createBot({
+      botName: 'My Bot',
+      botUsername: 'my_bot123bot'
+    });
+
+    if (result.success) {
+      console.log('Token:', result.botToken);
+    }
+    // Returns: { success: boolean, botToken?: string, error?: string }
+    ```
+
+    #### `listBots()`
+    Lists all bots (first page only).
+
+    ```typescript
+    const result = await botFather.listBots();
+    // Returns: { success: boolean, bots: IBotInfo[], error?: string }
+    ```
+
+    #### `listAllBots()`
+    Lists **all** bots with automatic pagination.
+
+    ```typescript
+    const result = await botFather.listAllBots();
+    // Returns: { success: boolean, bots: IBotInfo[], error?: string }
+    ```
+
+    #### `getBotInfo(botUsername)`
+    Gets specific bot information.
+
+    ```typescript
+    const result = await botFather.getBotInfo('my_bot123bot');
+    // Returns: { success: boolean, bot: IBotInfo, error?: string }
+    ```
+
+    #### `getBotToken(botUsername)`
+    Gets a bot's token.
+
+    ```typescript
+    const result = await botFather.getBotToken('my_bot123bot');
+    // Returns: { success: boolean, token?: string }
+    ```
+
+    #### `getAllBotsWithTokens(options?)`
+    Gets all bots with their tokens (iterates with pagination).
+
+    ```typescript
+    const bots = await botFather.getAllBotsWithTokens({
+      onProgress: (msg) => console.log(msg)  // Optional: progress callback
+    });
+    // Returns: Array<IBotInfo & { token: string }>
+    ```
+
+    #### `setCommands(botUsername, commands)`
+    Configures bot commands via BotFather.
+
+    ```typescript
+    const result = await botFather.setCommands('my_bot123bot', [
+      { command: 'start', description: 'Start the bot' },
+      { command: 'help', description: 'Get help' },
+      { command: 'settings', description: 'Settings' }
+    ]);
+    // Returns: { success: boolean, commands?: IBotCommand[], error?: string }
+    ```
+
+    #### `setDescription(botUsername, description)`
+    Configures bot description.
+
+    ```typescript
+    const result = await botFather.setDescription(
+      'my_bot123bot',
+      'A useful bot that does amazing things'
+    );
+    // Returns: { success: boolean, description?: string, error?: string }
+    ```
+
+    #### `setAboutText(botUsername, about)`
+    Configures bot "About" text.
+
+    ```typescript
+    const result = await botFather.setAboutText(
+      'my_bot123bot',
+      'This bot was created with telegram-bot-manager'
+    );
+    // Returns: { success: boolean, about?: string, error?: string }
+    ```
+
+    #### `setName(botUsername, name)`
+    Changes bot name.
+
+    ```typescript
+    const result = await botFather.setName('my_bot123bot', 'My New Name');
+    // Returns: { success: boolean, name?: string, error?: string }
+    ```
+
+    #### `checkUsernameAvailable(botUsername)`
+    Checks if a username is available.
+
+    ```typescript
+    const available = await botFather.checkUsernameAvailable('my_bot123bot');
+    // Returns: boolean
+    ```
+
+  </Tab>
+
+  <Tab value="GroupManager">
+    ## GroupManager
+
+    Manages group, supergroup, and forum creation.
+
+    ### Constructor
+
+    ```typescript
+    import { GroupManager } from '@mks2508/telegram-bot-manager';
+
+    const groupManager = new GroupManager(client);
+    ```
+
+    ### Methods
+
+    #### `createSupergroup(options)`
+    Creates a supergroup (can be converted to forum).
+
+    ```typescript
+    const result = await groupManager.createSupergroup({
+      title: 'My Forum',
+      description: 'Forum description',
+      forumMode: true  // true to create as forum
+    });
+
+    if (result.success) {
+      console.log('Chat ID:', result.chatId);
+      console.log('Invite Link:', result.inviteLink);
+    }
+    // Returns: GroupCreationResult
+    ```
+
+    #### `convertToForum(channelId)`
+    Converts an existing supergroup to forum.
+
+    ```typescript
+    const result = await groupManager.convertToForum(channelId);
+    // Returns: { success: boolean, error?: string }
+    ```
+
+    #### `promoteBotToAdmin(channelId, botUsername, permissions)`
+    Promotes a bot to admin with specific permissions.
+
+    ```typescript
+    const result = await groupManager.promoteBotToAdmin(
+      channelId,
+      'my_bot123bot',
+      {
+        canManageTopics: true,
+        canDeleteMessages: true,
+        canEditMessages: false,
+        canInviteUsers: true,
+        canBanUsers: false,
+        canPinMessages: true
+      }
+    );
+    // Returns: { success: boolean, error?: string }
+    ```
+
+    #### `getUserForums()`
+    Lists all user forums.
+
+    ```typescript
+    const forums = await groupManager.getUserForums();
+    // Returns: ForumGroupInfo[]
+    ```
+
+  </Tab>
+
+  <Tab value="TopicManager">
+    ## TopicManager
+
+    Manages topic creation in Telegram forums using Bot API.
+
+    ### Constructor
+
+    ```typescript
+    import { TopicManager } from '@mks2508/telegram-bot-manager';
+
+    const topicManager = new TopicManager(botToken);
+    ```
+
+    ### Methods
+
+    #### `createTopic(options)`
+    Creates a topic in a forum.
+
+    ```typescript
+    const result = await topicManager.createTopic({
+      chatId: -1001234567890,
+      name: 'Logs',
+      iconColor: 0x6FB9F0  // Optional: color in hex format
+    });
+
+    if (result.success) {
+      console.log('Topic ID:', result.threadId);
+    }
+    // Returns: TopicCreationResult
+    ```
+
+    #### `createTopics(chatId, topicNames)`
+    Creates multiple topics at once.
+
+    ```typescript
+    const results = await topicManager.createTopics(
+      -1001234567890,
+      ['General', 'Control', 'Logs', 'Config', 'Bugs']
+    );
+    // Returns: Array<{ name: string, result: TopicCreationResult }>
+    ```
+
+    #### `createDefaultTopics(chatId)`
+    Creates default system topics.
+
+    ```typescript
+    const results = await topicManager.createDefaultTopics(-1001234567890);
+    // Creates: General, Control, Logs, Config, Bugs
+    ```
+
+  </Tab>
+
+  <Tab value="EnvManager">
+    ## EnvManager
+
+    Manages .env files for multi-bot configurations.
+
+    ### Constructor
+
+    ```typescript
+    import { EnvManager } from '@mks2508/telegram-bot-manager';
+
+    const envManager = new EnvManager();
+    ```
+
+    ### Methods
+
+    #### `addBot(botUsername, token, environment, metadata?)`
+    Adds a bot to configuration.
+
+    ```typescript
+    envManager.addBot(
+      'my_bot123bot',
+      '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11',
+      'local',
+      {
+        name: 'My Bot',
+        chatId: -1001234567890,
+        topics: { control: 12345, logs: 12346 }
+      }
+    );
+    ```
+
+    #### `listBots()`
+    Lists all configured bots.
+
+    ```typescript
+    const bots = envManager.listBots();
+    // Returns: IBotConfigInfo[]
+    ```
+
+    #### `botExists(botUsername)`
+    Checks if a bot exists in configuration.
+
+    ```typescript
+    const exists = envManager.botExists('my_bot123bot');
+    // Returns: boolean
+    ```
+
+    #### `getActiveBot()`
+    Gets the current active bot.
+
+    ```typescript
+    const activeBot = envManager.getActiveBot();
+    // Returns: string | null (active bot username)
+    ```
+
+    #### `setActiveBot(botUsername)`
+    Sets a bot as active.
+
+    ```typescript
+    envManager.setActiveBot('my_bot123bot');
+    ```
+
+    #### `getBotConfig(botUsername, environment)`
+    Gets bot configuration.
+
+    ```typescript
+    const config = envManager.getBotConfig('my_bot123bot', 'local');
+    // Returns: IBotEnvironmentConfig | undefined
+    ```
+
+    #### `removeBot(botUsername)`
+    Removes a bot from configuration.
+
+    ```typescript
+    envManager.removeBot('my_bot123bot');
+    ```
+
+    #### `updateBotMetadata(botUsername, metadata)`
+    Updates bot metadata.
+
+    ```typescript
+    envManager.updateBotMetadata('my_bot123bot', {
+      name: 'My Updated Bot',
+      chatId: -1001234567890
+    });
+    ```
+
+  </Tab>
+</Tabs>
+
+## Types
+
+### IBotInfo
+
+Bot information.
+
+```typescript
+interface IBotInfo {
+  username: string;      // Bot @username
+  name: string;          // Bot name
+  description?: string;  // Description
+  about?: string;        // About text
+}
+```
+
+### IBotCommand
+
+Bot command.
+
+```typescript
+interface IBotCommand {
+  command: string;       // Command without /
+  description: string;   // Command description
+}
+```
+
+### ICreateBotOptions
+
+Options for creating a bot.
+
+```typescript
+interface ICreateBotOptions {
+  botName: string;       // Bot name
+  botUsername: string;   // Username (must end in "bot")
+}
+```
+
+### Environment
+
+Supported environments.
+
+```typescript
+type Environment = 'local' | 'staging' | 'production';
+```
+
+## Configuration
+
+### loadCommandsConfig(path)
+
+Loads command configuration from a JSON file.
+
+```typescript
+import { loadCommandsConfig } from '@mks2508/telegram-bot-manager';
+
+const commands = loadCommandsConfig('./commands.json');
+```
+
+### loadTopicsConfig(path)
+
+Loads topic configuration from a JSON file.
+
+```typescript
+import { loadTopicsConfig } from '@mks2508/telegram-bot-manager';
+
+const topics = loadTopicsConfig('./topics.json');
+```
+
+### getDefaultCommands()
+
+Gets default commands.
+
+```typescript
+import { getDefaultCommands } from '@mks2508/telegram-bot-manager';
+
+const commands = getDefaultCommands();
+```
+
+### getDefaultTopics()
+
+Gets default topics.
+
+```typescript
+import { getDefaultTopics } from '@mks2508/telegram-bot-manager';
+
+const topics = getDefaultTopics();
+// General, Control, Logs, Config, Bugs
+```
