@@ -45,6 +45,17 @@ jobs:
         env:
           NODE_ENV: production
 
+      - name: Move files for basePath
+        run: |
+          cd out
+          mkdir telegram-bot-manager
+          # Move all files and directories except telegram-bot-manager itself
+          for item in * .*; do
+            if [ "$item" != "." ] && [ "$item" != ".." ] && [ "$item" != "telegram-bot-manager" ]; then
+              mv "$item" telegram-bot-manager/
+            fi
+          done
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
