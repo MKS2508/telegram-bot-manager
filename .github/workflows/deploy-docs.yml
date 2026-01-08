@@ -65,7 +65,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./apps/telegram-bot-manager-docs/out
+          path: ./apps/telegram-bot-manager-docs/out/telegram-bot-manager
 
   deploy:
     environment:
