@@ -1,0 +1,147 @@
+---
+title: Arquitectura
+description: Arquitectura del sistema y diseño de componentes
+---
+
+# Arquitectura
+
+Entender la arquitectura de Telegram Bot Manager te ayuda a usarlo efectivamente y extenderlo cuando sea necesario.
+
+## Arquitectura de Alto Nivel
+
+```
+Usuario / Desarrollador
+        │
+        ├── CLI ──┐
+        │         │
+        └── Biblioteca ──┘
+                │
+        Core Managers (src/)
+        ├── BotFatherManager
+        ├── GroupManager
+        ├── TopicManager
+        ├── EnvManager
+        ├── BootstrapClient
+        └── BootstrapState
+                │
+        BootstrapClient (client.ts)
+        └── GramJS Wrapper
+                │
+        Telegram (MTProto)
+        └── @BotFather | Groups | Channels
+```
+
+## Desglose de Componentes
+
+### CLI Layer (`src/cli/`)
+
+**Responsabilidades:**
+- Parse argumentos de línea de comandos
+- Muestra progreso y resultados
+- Maneja interacción del usuario
+- Llama managers principales
+
+### Managers Principales
+
+#### BotFatherManager
+- **Métodos Clave:** `createBot()`, `setCommands()`, `setDescription()`, `getBotToken()`
+- **Patrón:** setupListener → sendMessage → waitForResponse → removeListener
+
+#### GroupManager
+- **Métodos Clave:** `createSupergroup()`, `addBotAsAdmin()`, `getForumTopics()`, `getInviteLink()`
+
+#### TopicManager
+- **Métodos Clave:** `createTopic()`, `createTopics()`, `getForumTopics()`
+- Usa **Bot API** para operaciones de topic (vía Telegraf)
+
+#### EnvManager
+
+**Estructura:**
+```
+core/.envs/
+├── mybot/
+│   ├── development.env
+│   ├── staging.env
+│   └── production.env
+└── .active → mybot  # Symlink al bot activo
+```
+
+- **Métodos Clave:** `createEnv()`, `readEnv()`, `updateEnv()`, `setActiveBot()`
+
+#### BootstrapClient
+
+**Responsabilidades:**
+- Envolver GramJS TelegramClient
+- Manejar autenticación
+- Proveer métodos helper
+
+**Métodos Clave:** `ensureAuthorized()`, `getMe()`, `getDialogs()`, `createChannel()`
+
+## Flujo de Datos
+
+### Flujo de Creación de Bot
+
+```
+Input Usuario
+    │
+    ▼
+CLI Command (bootstrap)
+    │
+    ▼
+BootstrapState (orchestración)
+    │
+    ├──▶ BotFatherManager.createBot()
+    │        └──▶ /newbot → @BotFather → Extrae token
+    │
+    ├──▶ GroupManager.createSupergroup()
+    │        └──▶ Crea vía MTProto
+    │
+    ├──▶ TopicManager.createTopics()
+    │        └──▶ Crea vía Bot API
+    │
+    └──▶ EnvManager.createEnv()
+             └──▶ Guarda todos los IDs en .env
+```
+
+## Archivos de Configuración
+
+### commands.json
+
+Usado por el comando `configure commands`.
+
+### topics.json
+
+Usado por el comando `topics` y bootstrap.
+
+## Estrategia de Manejo de Errores
+
+```typescript
+try {
+  const result = await operation()
+  return { success: true, data: result }
+} catch (error) {
+  return { success: false, error: error.message }
+}
+```
+
+## Puntos de Extensión
+
+### Agregar Nuevos Comandos
+
+1. Crea archivo en `src/cli/commands/`
+2. Exporta función de comando
+3. Registra en `src/cli/index.ts`
+
+### Agregar Nuevos Managers
+
+1. Crea clase de manager
+2. Exporta desde `src/index.ts`
+3. Usa en CLI o biblioteca
+
+## ¿Qué Sigue?
+
+Ahora entiendes la arquitectura:
+
+- [**Referencia de Biblioteca**](/docs/referencia-biblioteca) - Explora todos los managers
+- [**Referencia de CLI**](/docs/referencia-cli) - Explora todos los comandos
+- [**Guías**](/docs/guias) - Ejemplos prácticos de uso

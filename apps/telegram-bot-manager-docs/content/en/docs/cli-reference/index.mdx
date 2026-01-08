@@ -1,0 +1,441 @@
+---
+title: CLI Reference
+description: Complete CLI documentation for telegram-bot-manager
+---
+
+# CLI Reference
+
+The `telegram-bot-manager` CLI provides commands to manage Telegram bots from the terminal.
+
+## Installation
+
+```bash
+# Via npx (recommended)
+npx @mks2508/telegram-bot-manager <command>
+
+# Or globally
+npm install -g @mks2508/telegram-bot-manager
+telegram-bot-manager <command>
+
+# Short alias
+tbm <command>
+```
+
+## Commands
+
+### `bootstrap`
+
+Main command for complete bot setup. Creates the bot via BotFather, the forum group, topics, and configures .env files.
+
+```bash
+tbm bootstrap [options]
+```
+
+#### Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `-e, --environment <env>` | Target environment (`local`, `staging`, `production`) | `local` |
+| `--bot-name <value>` | Bot name | Auto-generated |
+| `--bot-username <value>` | Bot username (must end in "bot") | Auto-generated |
+| `--group-name <value>` | Group/forum title | Auto-generated |
+| `--skip-topics` | Skip topic creation | `false` |
+| `--auto` | Use auto-generated names without confirmation | `false` |
+| `--bot <value>` | Use specific existing bot | - |
+| `--list` | List available bots from BotFather | - |
+| `--reuse` | Reuse existing configuration without prompts | - |
+| `--force` | Force recreation of existing configuration | - |
+
+#### Examples
+
+```bash
+# Complete interactive bootstrap
+tbm bootstrap
+
+# Bootstrap for production with specific names
+tbm bootstrap -e production --bot-name "My Bot" --bot-username "my_bot_v1_bot"
+
+# Automatic bootstrap (no prompts)
+tbm bootstrap --auto
+
+# List available bots and select one
+tbm bootstrap --list
+
+# Use existing bot to configure group and topics
+tbm bootstrap --bot my_existing_bot_bot
+
+# Skip topic creation
+tbm bootstrap --skip-topics
+```
+
+#### Interactive Flow
+
+The `bootstrap` command has 4 phases:
+
+1. **API Configuration**: Prompts for `apiId` and `apiHash` from my.telegram.org
+2. **Bot Creation**: Interacts with BotFather to create the bot
+3. **Group Creation**: Creates supergroup and converts to forum
+4. **Topic Configuration**: Creates default topics (General, Control, Logs, Config, Bugs)
+
+---
+
+### `bot`
+
+Manages multi-bot configurations.
+
+#### `bot list`
+
+Lists all configured bots.
+
+```bash
+tbm bot list
+```
+
+**Example output:**
+```
+📋 Configured Bots
+
+Found 2 configured bot(s):
+
+✓ @my_bot1_bot
+      Environments: local, production
+      Name: My Bot 1
+      Created: 1/15/2025
+
+  @my_bot2_bot
+      Environments: staging
+      Name: My Bot 2
+      Created: 1/20/2025
+```
+
+#### `bot use <username>`
+
+Sets a bot as active.
+
+```bash
+tbm bot use my_bot1_bot
+```
+
+The active bot is used by default in other commands when `--bot` is not specified.
+
+#### `bot info <username>`
+
+Shows detailed bot information.
+
+```bash
+tbm bot info my_bot1_bot
+```
+
+**Example output:**
+```
+📊 Bot Information
+
+Bot: @my_bot1_bot
+Name: My Bot 1
+Created: January 15, 2025
+
+Environments:
+  ✓ local    (chatId: -1001234567890)
+  ✗ staging
+  ✓ production (chatId: -1009876543210)
+
+Metadata:
+  Control Topic ID: 12345
+  Logs Topic ID: 12346
+  Config Topic ID: 12347
+```
+
+#### `bot delete <username>`
+
+Deletes a bot configuration.
+
+```bash
+tbm bot delete my_bot1_bot
+
+# Delete without confirmation
+tbm bot delete my_bot1_bot --force
+```
+
+**Note:** This only deletes local configuration, not the bot on Telegram.
+
+#### `bot migrate`
+
+Migrates old `.env.{environment}` files to new `.envs/` structure.
+
+```bash
+tbm bot migrate
+```
+
+**Old structure:**
+```
+core/.env.local
+core/.env.staging
+core/.env.production
+```
+
+**New structure:**
+```
+core/.envs/my_bot1_bot/local.env
+core/.envs/my_bot1_bot/staging.env
+core/.envs/my_bot1_bot/production.env
+```
+
+---
+
+### `configure`
+
+Configures bot aspects via BotFather.
+
+```bash
+tbm configure <sub-command> [options]
+```
+
+#### `configure commands <bot-username>`
+
+Configures bot commands.
+
+```bash
+# Use commands.json file
+tbm configure commands my_bot1_bot
+
+# Use custom file
+tbm configure commands my_bot1_bot --file my-commands.json
+```
+
+**`commands.json` format:**
+```json
+{
+  "commands": [
+    { "command": "start", "description": "Start the bot" },
+    { "command": "help", "description": "Show help" },
+    { "command": "settings", "description": "Settings" }
+  ]
+}
+```
+
+#### `configure description <bot-username>`
+
+Configures bot description.
+
+```bash
+tbm configure description my_bot1_bot "A useful bot that helps with..."
+```
+
+#### `configure about <bot-username>`
+
+Configures bot "About" text.
+
+```bash
+tbm configure about my_bot1_bot "This bot was created with telegram-bot-manager"
+```
+
+#### `configure name <bot-username>`
+
+Changes bot name.
+
+```bash
+tbm configure name my_bot1_bot "My New Name"
+```
+
+---
+
+### `topics`
+
+Manages forum topics.
+
+```bash
+tbm topics <sub-command> [options]
+```
+
+#### `topics create <bot-username> <chat-id>`
+
+Creates topics in a forum.
+
+```bash
+# Use topics.json file
+tbm topics create my_bot1_bot -1001234567890
+
+# Create default topics
+tbm topics create my_bot1_bot -1001234567890 --default
+
+# Use custom file
+tbm topics create my_bot1_bot -1001234567890 --file my-topics.json
+```
+
+**`topics.json` format:**
+```json
+{
+  "topics": [
+    { "name": "General", "iconColor": 0x6FB9F0 },
+    { "name": "Announcements", "iconColor": 0xE66767 },
+    { "name": "Support", "iconColor": 0x49D683 }
+  ]
+}
+```
+
+**Default topics:**
+- General
+- Control
+- Logs
+- Config
+- Bugs
+
+---
+
+## Directory Structure
+
+The CLI creates the following structure:
+
+```
+your-project/
+├── core/
+│   ├── .envs/                    # New multi-bot structure
+│   │   ├── bot1_bot/
+│   │   │   ├── local.env
+│   │   │   ├── staging.env
+│   │   │   └── production.env
+│   │   └── bot2_bot/
+│   │       └── local.env
+│   ├── .env.local                # Old structure (obsolete)
+│   ├── .env.staging
+│   └── .env.production
+├── commands.json                 # Commands configuration
+└── topics.json                   # Topics configuration
+```
+
+## Configuration Files
+
+### `commands.json`
+
+Defines bot commands.
+
+```json
+{
+  "commands": [
+    {
+      "command": "start",
+      "description": "Start the bot and show main menu"
+    },
+    {
+      "command": "help",
+      "description": "Show help and available commands"
+    },
+    {
+      "command": "settings",
+      "description": "Open settings"
+    }
+  ]
+}
+```
+
+### `topics.json`
+
+Defines forum topics.
+
+```json
+{
+  "topics": [
+    {
+      "name": "General",
+      "iconColor": 0x6FB9F0
+    },
+    {
+      "name": "Control",
+      "iconColor": 0xE66767
+    },
+    {
+      "name": "Logs",
+      "iconColor": 0x49D683
+    }
+  ]
+}
+```
+
+### `.envs/{bot_username}/{environment}.env`
+
+Environment file per bot and environment.
+
+```bash
+# Telegram API Credentials
+TG_API_ID=12345
+TG_API_HASH=abcd1234
+
+# Bot Token
+BOT_TOKEN=123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
+
+# Bot Info
+BOT_USERNAME=my_bot1_bot
+BOT_NAME=My Bot 1
+
+# Forum Info
+FORUM_CHAT_ID=-1001234567890
+FORUM_TITLE=My Forum
+
+# Topic IDs
+TOPIC_GENERAL_ID=12345
+TOPIC_CONTROL_ID=12346
+TOPIC_LOGS_ID=12347
+TOPIC_CONFIG_ID=12348
+TOPIC_BUGS_ID=12349
+```
+
+## Environment Variables
+
+### Global
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `TG_API_ID` | API ID from my.telegram.org | `12345` |
+| `TG_API_HASH` | API Hash from my.telegram.org | `abcd1234...` |
+
+### Per Bot
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `BOT_TOKEN` | Bot token | `123456:ABC-...` |
+| `BOT_USERNAME` | Bot username | `my_bot1_bot` |
+| `BOT_NAME` | Bot name | `My Bot 1` |
+| `FORUM_CHAT_ID` | Forum ID | `-1001234567890` |
+| `FORUM_TITLE` | Forum title | `My Forum` |
+| `TOPIC_*_ID` | Topic IDs | `12345` |
+
+## Error Codes
+
+The CLI uses standard exit codes:
+
+| Code | Meaning |
+|-------|---------|
+| `0` | Success |
+| `1` | Generic error |
+| `2` | Invalid arguments |
+| `3` | Connection error |
+| `4` | Bot not found |
+| `5` | BotFather error |
+
+## Usage Tips
+
+### Autocompletion
+
+The CLI supports Tab autocompletion:
+
+```bash
+tbm b<Tab>      # -> tbm bootstrap
+tbm bot l<Tab>  # -> tbm bot list
+```
+
+### Verbose Mode
+
+For more debug details:
+
+```bash
+NODE_ENV=development tbm bootstrap
+```
+
+### Common Alias
+
+Add an alias to your shell for shortcuts:
+
+```bash
+# In ~/.bashrc or ~/.zshrc
+alias tbm='npx @mks2508/telegram-bot-manager'
+```

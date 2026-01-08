@@ -1,0 +1,55 @@
+---
+title: Core Concepts
+description: Understand how Telegram Bot Manager works under the hood
+---
+
+# Core Concepts
+
+To use Telegram Bot Manager effectively, it's important to understand the core concepts and how everything fits together.
+
+## Overview
+
+Telegram Bot Manager bridges the gap between the standard Bot API and Telegram's full capabilities by using:
+
+- **MTProto** - Telegram's native protocol
+- **GramJS** - TypeScript implementation of MTProto
+- **BotFather Automation** - Programmatic interaction with BotFather
+- **TypeScript** - Type-safe API with full autocomplete
+
+## Key Concepts
+
+### 1. BotFather Automation
+
+Learn how Telegram Bot Manager automates interactions with BotFather to perform operations impossible with the Bot API.
+
+→ [BotFather Automation](/en/docs/core-concepts/botfather-automation)
+
+### 2. GramJS & MTProto
+
+Understanding the underlying technology that makes this possible.
+
+→ [GramJS & MTProto](/en/docs/core-concepts/gramjs-mtproto)
+
+### 3. System Architecture
+
+How the components work together to provide a seamless experience.
+
+→ [Architecture](/en/docs/core-concepts/architecture)
+
+## Quick Reference
+
+| Component | Purpose | Used For |
+|-----------|---------|----------|
+| `BootstrapClient` | MTProto connection | User authentication |
+| `BotFatherManager` | BotFather automation | Bot creation & config |
+| `GroupManager` | Group management | Supergroup/forum creation |
+| `TopicManager` | Topic management | Forum topic creation |
+| `EnvManager` | Environment management | Multi-bot configuration |
+
+## Next Steps
+
+Dive deeper into each concept:
+
+- [**BotFather Automation**](/en/docs/core-concepts/botfather-automation) - Start here!
+- [**GramJS & MTProto**](/en/docs/core-concepts/gramjs-mtproto) - Technical details
+- [**Architecture**](/en/docs/core-concepts/architecture) - System design

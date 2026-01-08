@@ -1,0 +1,118 @@
+---
+title: Installation
+description: Install and configure Telegram Bot Manager as a CLI or library
+---
+
+# Installation
+
+Telegram Bot Manager can be used in two ways: as a standalone CLI tool or as a library in your TypeScript project.
+
+## CLI Installation
+
+### Using npx (Recommended)
+
+The easiest way to use Telegram Bot Manager is via `npx` - no installation required:
+
+```bash
+# Run directly without installation
+npx @mks2508/telegram-bot-manager bootstrap
+```
+
+### Global Installation
+
+For frequent use, install globally:
+
+```bash
+# Using npm
+npm install -g @mks2508/telegram-bot-manager
+
+# Using bun
+bun add -g @mks2508/telegram-bot-manager
+
+# Using pnpm
+pnpm add -g @mks2508/telegram-bot-manager
+```
+
+After global installation, you can use the `telegram-bot-manager` or `tbm` command:
+
+```bash
+telegram-bot-manager bootstrap
+# or
+tbm bootstrap
+```
+
+## Library Installation
+
+Add the package to your TypeScript/JavaScript project:
+
+```bash
+# npm
+npm install @mks2508/telegram-bot-manager
+
+# bun
+bun add @mks2508/telegram-bot-manager
+
+# pnpm
+pnpm add @mks2508/telegram-bot-manager
+
+# yarn
+yarn add @mks2508/telegram-bot-manager
+```
+
+## Getting Telegram Credentials
+
+Before using Telegram Bot Manager, you need API credentials:
+
+1. Visit [my.telegram.org](https://my.telegram.org)
+2. Sign in with your phone number
+3. Navigate to **API development tools**
+4. Create a new application (fill in the form)
+5. Copy your `api_id` and `api_hash`
+
+<Callout type="warning">
+**Keep your credentials safe!**
+
+Never share your `api_hash` publicly. These credentials grant access to Telegram's MTProto API.
+</Callout>
+
+## Verification
+
+### Verify CLI Installation
+
+```bash
+# Check version
+telegram-bot-manager --version
+
+# See all commands
+telegram-bot-manager --help
+```
+
+### Verify Library Installation
+
+Create a test file `test.ts`:
+
+```ts
+import { BootstrapClient } from '@mks2508/telegram-bot-manager'
+
+const client = new BootstrapClient({
+  apiId: 12345, // Your api_id
+  apiHash: 'your-api-hash'
+})
+
+console.log('Telegram Bot Manager is ready!')
+```
+
+Run it:
+
+```bash
+bun run test.ts
+```
+
+## Next Steps
+
+Now that you have Telegram Bot Manager installed:
+
+- [**Quick Start**](/en/docs/getting-started/quick-start) - Create your first bot
+- [**Authentication**](/en/docs/getting-started/authentication) - Understand how authentication works
+- [**CLI Reference**](/en/docs/cli-reference) - Explore all CLI commands
+- [**Library Reference**](/en/docs/library-reference) - Explore the API

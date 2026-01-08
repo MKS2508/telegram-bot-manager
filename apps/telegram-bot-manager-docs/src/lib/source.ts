@@ -1,11 +1,18 @@
-import { docs } from 'fumadocs-mdx:collections/server';
+import { docs, docsEn } from 'fumadocs-mdx:collections/server';
 import { type InferPageType, loader } from 'fumadocs-core/source';
 import { lucideIconsPlugin } from 'fumadocs-core/source/lucide-icons';
 
-// See https://fumadocs.dev/docs/headless/source-api for more info
+// Source para español (default)
 export const source = loader({
   baseUrl: '/docs',
   source: docs.toFumadocsSource(),
+  plugins: [lucideIconsPlugin()],
+});
+
+// Source para inglés
+export const sourceEn = loader({
+  baseUrl: '/en/docs',
+  source: docsEn.toFumadocsSource(),
   plugins: [lucideIconsPlugin()],
 });
 

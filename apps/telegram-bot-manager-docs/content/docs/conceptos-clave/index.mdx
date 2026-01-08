@@ -1,0 +1,55 @@
+---
+title: Conceptos Clave
+description: Entiende cómo funciona Telegram Bot Manager por dentro
+---
+
+# Conceptos Clave
+
+Para usar Telegram Bot Manager efectivamente, es importante entender los conceptos clave y cómo todo encaja.
+
+## Resumen
+
+Telegram Bot Manager cierra la brecha entre la API estándar de bots y las capacidades completas de Telegram usando:
+
+- **MTProto** - Protocolo nativo de Telegram
+- **GramJS** - Implementación TypeScript de MTProto
+- **Automatización de BotFather** - Interacción programática con @BotFather
+- **TypeScript** - API type-safe con autocompletado completo
+
+## Conceptos Clave
+
+### 1. Automatización de BotFather
+
+Aprende cómo Telegram Bot Manager automatiza interacciones con @BotFather para realizar operaciones imposibles con la API de bots.
+
+→ [Automatización de BotFather](/docs/conceptos-clave/automatizacion-botfather)
+
+### 2. GramJS & MTProto
+
+Entendiendo la tecnología subyacente que hace esto posible.
+
+→ [GramJS & MTProto](/docs/conceptos-clave/gramjs-mtproto)
+
+### 3. Arquitectura del Sistema
+
+Cómo los componentes trabajan juntos para proveer una experiencia seamless.
+
+→ [Arquitectura](/docs/conceptos-clave/arquitectura)
+
+## Referencia Rápida
+
+| Componente | Propósito | Usado Para |
+|------------|-----------|------------|
+| `BootstrapClient` | Conexión MTProto | Autenticación de usuario |
+| `BotFatherManager` | Automatización de BotFather | Creación y config de bots |
+| `GroupManager` | Gestión de grupos | Creación de supergrupo/foro |
+| `TopicManager` | Gestión de topics | Creación de topics de foro |
+| `EnvManager` | Gestión de entornos | Configuración multi-bot |
+
+## ¿Qué Sigue?
+
+Profundiza en cada concepto:
+
+- [**Automatización de BotFather**](/docs/conceptos-clave/automatizacion-botfather) - ¡Comienza aquí!
+- [**GramJS & MTProto**](/docs/conceptos-clave/gramjs-mtproto) - Detalles técnicos
+- [**Arquitectura**](/docs/conceptos-clave/arquitectura) - Diseño del sistema

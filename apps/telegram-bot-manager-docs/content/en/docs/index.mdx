@@ -1,0 +1,125 @@
+---
+title: Telegram Bot Manager
+description: TypeScript library and CLI for automating Telegram bot management via BotFather using GramJS (MTProto)
+---
+
+import { Cards, Card } from 'fumadocs-ui/components/card';
+
+# Telegram Bot Manager
+
+TypeScript library and CLI for automating Telegram bot management via BotFather using GramJS (MTProto).
+
+<Cards>
+  <Card
+    title="BotFather Automation"
+    href="/en/docs/getting-started"
+    icon="🤖"
+  >
+    Automate interactions with BotFather - create bots, set commands, configure descriptions, and retrieve tokens programmatically.
+  </Card>
+
+  <Card
+    title="CLI & Library"
+    href="/en/docs/getting-started/installation"
+    icon="📦"
+  >
+    Use via npx for quick automation or import as a TypeScript library for programmatic control.
+  </Card>
+
+  <Card
+    title="Multi-Bot Support"
+    href="/en/docs/guides/multi-bot-setup"
+    icon="🔧"
+  >
+    Manage multiple Telegram bots with environment-based configuration and easy switching.
+  </Card>
+
+  <Card
+    title="Forum & Topics"
+    href="/en/docs/guides/forum-topics"
+    icon="💬"
+  >
+    Create and manage forum groups with custom topics, colors, and admin permissions.
+  </Card>
+</Cards>
+
+## Features
+
+### BotFather Automation
+
+Automate tasks impossible with the standard Bot API:
+
+- **Create Bots** - Programmatically create new bots with custom names and usernames
+- **Configure Commands** - Set bot commands with descriptions
+- **Manage Metadata** - Update descriptions, about text, and display names
+- **Retrieve Tokens** - Get bot tokens for your configured bots
+- **Check Availability** - Verify username availability before creation
+
+### Group & Forum Management
+
+- **Create Supergroups** - Build supergroups with forum capabilities
+- **Forum Topics** - Create and manage forum topics with custom colors and icons
+- **Admin Permissions** - Fine-grained control over bot admin rights
+- **Invite Links** - Generate and manage group invite links
+
+### Environment Management
+
+- **Multi-Environment** - Support for dev, staging, production environments
+- **Easy Switching** - Quickly switch between active bots
+- **Migration Tools** - Migrate from legacy .env setups
+- **Type-Safe** - Full TypeScript support with generated types
+
+## Quick Start
+
+### CLI Usage
+
+```bash
+# Install and run the interactive bootstrap
+npx @mks2508/telegram-bot-manager bootstrap
+
+# List configured bots
+npx @mks2508/telegram-bot-manager bot list
+
+# Set bot commands
+npx @mks2508/telegram-bot-manager configure commands mybot
+```
+
+### Library Usage
+
+```ts
+import { BootstrapClient, BotFatherManager } from '@mks2508/telegram-bot-manager'
+
+const client = new BootstrapClient({
+  apiId: 12345,
+  apiHash: 'your-api-hash'
+})
+
+await client.ensureAuthorized()
+
+const botFather = new BotFatherManager(client)
+const result = await botFather.createBot({
+  botName: 'My Bot',
+  botUsername: 'my_bot_123bot'
+})
+
+console.log(result.token) // Your bot token
+```
+
+## Why Telegram Bot Manager?
+
+The Telegram Bot API is powerful, but it has limitations. Some operations can only be done through BotFather, and manual interaction is slow and error-prone.
+
+**Telegram Bot Manager bridges this gap** by:
+
+1. **Using MTProto via GramJS** - Direct protocol access, not limited by Bot API
+2. **Automating BotFather** - Programmatic interaction with BotFather
+3. **Type-Safe** - Full TypeScript with autocomplete
+4. **Production Ready** - Battle-tested with comprehensive error handling
+
+## What's Next?
+
+- [**Getting Started**](/en/docs/getting-started) - Introduction and overview
+- [**Installation**](/en/docs/getting-started/installation) - Set up the CLI or library
+- [**Quick Start**](/en/docs/getting-started/quick-start) - Create your first bot in 5 minutes
+- [**Core Concepts**](/en/docs/core-concepts) - Learn how it works
+- [**API Reference**](/en/docs/library-reference) - Explore the full API

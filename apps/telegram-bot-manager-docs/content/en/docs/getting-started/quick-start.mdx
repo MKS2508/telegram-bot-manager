@@ -1,0 +1,164 @@
+---
+title: Quick Start
+description: Create your first Telegram bot in 5 minutes with Telegram Bot Manager
+---
+
+# Quick Start
+
+Get your first Telegram bot up and running in just a few minutes!
+
+## Prerequisites Checklist
+
+Before starting, make sure you have:
+
+- [x] Telegram account
+- [x] `api_id` and `api_hash` from [my.telegram.org](https://my.telegram.org)
+- [x] Telegram Bot Manager installed ([Installation](/en/docs/getting-started/installation))
+
+## Option 1: CLI (Fastest)
+
+The interactive `bootstrap` command guides you through the entire setup:
+
+```bash
+npx @mks2508/telegram-bot-manager bootstrap
+```
+
+### What Bootstrap Does
+
+The bootstrap command automates 4 phases:
+
+<Steps>
+  **Step 1: Bot Creation**
+
+  - Creates a new bot via BotFather
+  - Sets bot name and username
+  - Retrieves the bot token
+  - Saves token to your `.env` file
+
+  **Step 2: Group Setup**
+
+  - Creates a supergroup for your bot
+  - Converts it to a forum (optional)
+  - Adds your bot as admin
+
+  **Step 3: Topic Creation**
+
+  - Creates forum topics (General, Control, Logs, etc.)
+  - Configures topic colors and icons
+  - Saves topic IDs to `.env`
+
+  **Step 4: Configuration**
+
+  - Sets bot commands via BotFather
+  - Configures bot description and about text
+  - Creates environment file with all variables
+</Steps>
+
+### Bootstrap Options
+
+```bash
+# Quick start with defaults
+npx @mks2508/telegram-bot-manager bootstrap --auto
+
+# Use existing bot
+npx @mks2508/telegram-bot-manager bootstrap --reuse
+
+# Skip topic creation
+npx @mks2508/telegram-bot-manager bootstrap --skip-topics
+
+# Specify environment
+npx @mks2508/telegram-bot-manager bootstrap --environment production
+```
+
+<Callout type="info">
+**First Time Setup**
+
+The first time you run any Telegram Bot Manager command, you'll be prompted for:
+- Your phone number
+- Verification code (sent via Telegram)
+- Two-factor password (if enabled)
+
+This creates a session file at `~/.mks-telegram-bot/session.txt` for future use.
+</Callout>
+
+## Option 2: Library
+
+For programmatic control, use the library:
+
+```typescript
+import { BootstrapClient, BotFatherManager } from '@mks2508/telegram-bot-manager'
+
+async function createMyBot() {
+  // 1. Initialize client
+  const client = new BootstrapClient({
+    apiId: 12345, // Your api_id
+    apiHash: 'your-api-hash'
+  })
+
+  // 2. Authenticate (first time only)
+  await client.ensureAuthorized()
+
+  // 3. Create bot via BotFather
+  const botFather = new BotFatherManager(client)
+  const result = await botFather.createBot({
+    botName: 'My Awesome Bot',
+    botUsername: 'my_awesome_bot'
+  })
+
+  console.log('Bot created successfully!')
+  console.log('Token:', result.token)
+  console.log('Username:', result.username)
+  console.log('Link:', result.link)
+
+  return result
+}
+
+createMyBot()
+```
+
+## Verify Your Bot
+
+After creation, verify your bot is working:
+
+```bash
+# List all configured bots
+npx @mks2508/telegram-bot-manager bot list
+
+# View bot details
+npx @mks2508/telegram-bot-manager bot info my_awesome_bot
+
+# Start a conversation with your bot
+# https://t.me/my_awesome_bot
+```
+
+## Next Steps
+
+Congratulations! You now have a working Telegram bot. Here's what you can do next:
+
+- [**Create First Bot Guide**](/en/docs/guides/create-first-bot) - Complete walkthrough
+- [**Core Concepts**](/en/docs/core-concepts) - Understand how it works
+- [**Multi-Bot Setup**](/en/docs/guides/multi-bot-setup) - Manage multiple bots
+- [**CLI Reference**](/en/docs/cli-reference) - Explore all commands
+- [**Library Reference**](/en/docs/library-reference) - API documentation
+
+## Troubleshooting
+
+### "No response from BotFather"
+
+- Check your internet connection
+- Make sure you're authenticated
+- Try `/cancel` in BotFather to reset state
+
+### "Authentication failed"
+
+- Verify your phone number is correct
+- Check that you received the verification code
+- Ensure two-factor password is correct (if enabled)
+
+### "Username not available"
+
+- Bot usernames must end in `bot`
+- Try a different username
+- Use `checkUsernameAvailable()` first
+
+For more help, see [Troubleshooting](/en/docs/appendix/troubleshooting).

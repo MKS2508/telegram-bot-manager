@@ -1,0 +1,530 @@
+---
+title: Configuración
+description: Guía completa de configuración para telegram-bot-manager
+---
+
+# Configuración
+
+Guía completa de configuración para `@mks2508/telegram-bot-manager`. Aprende a configurar comandos, topics y variables de entorno para tu bot.
+
+## Archivos de Configuración
+
+`telegram-bot-manager` utiliza archivos JSON para definir comandos y topics de tu bot. Estos archivos pueden ser usados tanto por la biblioteca como por la CLI.
+
+### Estructura de Archivos
+
+```
+tu-proyecto/
+├── commands.json              # Configuración de comandos del bot
+├── topics.json                # Configuración de topics del foro
+└── core/
+    └── .envs/                 # Archivos de entorno por bot
+        └── bot_username/
+            ├── local.env
+            ├── staging.env
+            └── production.env
+```
+
+## Archivo `commands.json`
+
+Define los comandos que tu bot responderá. Estos comandos se configuran automáticamente vía BotFather.
+
+### Ubicación
+
+- **CLI**: Raíz del proyecto (`./commands.json`)
+- **Library**: Cualquier ruta accesible
+
+### Formato
+
+```json
+{
+  "commands": [
+    {
+      "command": "start",
+      "description": "Inicia el bot y muestra el menú principal"
+    },
+    {
+      "command": "help",
+      "description": "Muestra ayuda y los comandos disponibles"
+    },
+    {
+      "command": "settings",
+      "description": "Abre la configuración del bot"
+    }
+  ]
+}
+```
+
+### Campos
+
+| Campo | Tipo | Requerido | Descripción |
+|-------|------|-----------|-------------|
+| `command` | string | Sí | Nombre del comando sin `/` (máx. 32 caracteres) |
+| `description` | string | Sí | Descripción del comando (máx. 256 caracteres) |
+
+### Reglas
+
+- Los comandos **no deben incluir** el símbolo `/`
+- Solo se permiten **letras minúsculas**, números y guiones bajos `_`
+- Máximo **20 comandos** por bot (limitación de Telegram)
+- Cada comando debe tener una **descripción única**
+
+### Ejemplo Completo
+
+```json
+{
+  "commands": [
+    {
+      "command": "start",
+      "description": "🚀 Inicia el bot y comienza la configuración"
+    },
+    {
+      "command": "help",
+      "description": "❓ Muestra ayuda y lista de comandos disponibles"
+    },
+    {
+      "command": "settings",
+      "description": "⚙️ Abre el panel de configuración"
+    },
+    {
+      "command": "status",
+      "description": "📊 Muestra el estado actual del bot"
+    },
+    {
+      "command": "about",
+      "description": "ℹ️ Información sobre este bot"
+    },
+    {
+      "command": "profile",
+      "description": "👤 Muestra tu perfil de usuario"
+    },
+    {
+      "command": "subscribe",
+      "description": "🔔 Suscríbete a notificaciones"
+    },
+    {
+      "command": "unsubscribe",
+      "description": "🔕 Cancela tu suscripción"
+    },
+    {
+      "command": "report",
+      "description": "🐛 Reporta un problema o bug"
+    },
+    {
+      "command": "feedback",
+      "description": "💬 Envía feedback o sugerencias"
+    }
+  ]
+}
+```
+
+## Archivo `topics.json`
+
+Define los topics que se crearán en un foro de Telegram. Cada topic representa una categoría de discusión.
+
+### Ubicación
+
+- **CLI**: Raíz del proyecto (`./topics.json`)
+- **Library**: Cualquier ruta accesible
+
+### Formato
+
+```json
+{
+  "topics": [
+    {
+      "name": "General",
+      "iconColor": 0x6FB9F0
+    },
+    {
+      "name": "Control",
+      "iconColor": 0xE66767
+    },
+    {
+      "name": "Logs",
+      "iconColor": 0x49D683
+    }
+  ]
+}
+```
+
+### Campos
+
+| Campo | Tipo | Requerido | Descripción |
+|-------|------|-----------|-------------|
+| `name` | string | Sí | Nombre del topic (máx. 128 caracteres) |
+| `iconColor` | number | No | Color del icono en formato hexadecimal |
+| `iconEmoji` | string | No | Emoji personalizado (requiere custom emoji) |
+
+### Colores Disponibles
+
+Telegram usa colores predefinidos. Los más comunes:
+
+| Color | Hex | Decimal |
+|-------|-----|---------|
+| Azul | `0x6FB9F0` | `7403128` |
+| Amarillo | `0xFFD67E` | `16766590` |
+| Verde | `0x49D683` | `4844995` |
+| Rosa | `0xF66767` | `16051047` |
+| Púrpura | `0x9C64E8` | `10260296` |
+| Rojo | `0xE66767` | `15065735` |
+| Naranja | `0xE88D48` | `15266344` |
+| Cyan | `0x5FA8F3` | `6309555` |
+
+### Ejemplo Completo
+
+```json
+{
+  "topics": [
+    {
+      "name": "General",
+      "iconColor": 0x6FB9F0
+    },
+    {
+      "name": "Control",
+      "iconColor": 0xE66767
+    },
+    {
+      "name": "Logs",
+      "iconColor": 0x49D683
+    },
+    {
+      "name": "Config",
+      "iconColor": 0xE88D48
+    },
+    {
+      "name": "Bugs",
+      "iconColor": 0xF66767
+    },
+    {
+      "name": "Anuncios",
+      "iconColor": 0xFFD67E
+    },
+    {
+      "name": "Soporte",
+      "iconColor": 0x9C64E8
+    },
+    {
+      "name": "Feature Requests",
+      "iconColor": 0x5FA8F3
+    }
+  ]
+}
+```
+
+### Topics por Defecto
+
+La biblioteca incluye topics por defecto que se usan internamente:
+
+```typescript
+import { getDefaultTopics } from '@mks2508/telegram-bot-manager';
+
+const defaultTopics = getDefaultTopics();
+// ['General', 'Control', 'Logs', 'Config', 'Bugs']
+```
+
+## Variables de Entorno
+
+Las variables de entorno se almacenan en archivos `.env` separados por bot y entorno.
+
+### Estructura de Directorios
+
+```
+core/.envs/
+├── mi_bot1_bot/
+│   ├── local.env
+│   ├── staging.env
+│   └── production.env
+└── mi_bot2_bot/
+    └── local.env
+```
+
+### Variables Globales (API)
+
+Estas variables son compartidas por todos los bots:
+
+```bash
+# Telegram API Credentials (de my.telegram.org)
+TG_API_ID=12345
+TG_API_HASH=abcd1234efgh5678
+```
+
+**Cómo obtener API Credentials:**
+
+1. Ve a [https://my.telegram.org](https://my.telegram.org)
+2. Inicia sesión con tu número de teléfono
+3. Ve a "API development tools"
+4. Copia `api_id` y `api_hash`
+
+### Variables por Bot
+
+Cada bot tiene sus propias variables en su archivo `.env`:
+
+```bash
+# Bot Token (de @BotFather)
+BOT_TOKEN=123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
+
+# Bot Info
+BOT_USERNAME=mi_bot1_bot
+BOT_NAME=Mi Bot 1
+
+# Forum Info
+FORUM_CHAT_ID=-1001234567890
+FORUM_TITLE=Mi Foro de Control
+
+# Topic IDs
+TOPIC_GENERAL_ID=12345
+TOPIC_CONTROL_ID=12346
+TOPIC_LOGS_ID=12347
+TOPIC_CONFIG_ID=12348
+TOPIC_BUGS_ID=12349
+
+# Environment
+ENVIRONMENT=local
+```
+
+### Referencia de Variables
+
+| Variable | Tipo | Ejemplo | Descripción |
+|----------|------|---------|-------------|
+| `TG_API_ID` | number | `12345` | API ID de Telegram |
+| `TG_API_HASH` | string | `abcd1234...` | API Hash de Telegram |
+| `BOT_TOKEN` | string | `123456:ABC-...` | Token del bot de @BotFather |
+| `BOT_USERNAME` | string | `mi_bot_bot` | Username del bot (sin @) |
+| `BOT_NAME` | string | `Mi Bot` | Nombre del bot |
+| `FORUM_CHAT_ID` | number | `-1001234567890` | ID del chat del foro |
+| `FORUM_TITLE` | string | `Mi Foro` | Título del foro |
+| `TOPIC_GENERAL_ID` | number | `12345` | ID del topic General |
+| `TOPIC_CONTROL_ID` | number | `12346` | ID del topic Control |
+| `TOPIC_LOGS_ID` | number | `12347` | ID del topic Logs |
+| `TOPIC_CONFIG_ID` | number | `12348` | ID del topic Config |
+| `TOPIC_BUGS_ID` | number | `12349` | ID del topic Bugs |
+| `ENVIRONMENT` | string | `local` | Entorno (`local`, `staging`, `production`) |
+
+### Leer Variables en Código
+
+#### Node.js / Bun
+
+```typescript
+// Importar EnvManager
+import { EnvManager } from '@mks2508/telegram-bot-manager';
+
+const envManager = new EnvManager();
+
+// Obtener configuración de un bot
+const config = envManager.getBotConfig('mi_bot1_bot', 'local');
+
+if (config) {
+  console.log('Bot Token:', config.botToken);
+  console.log('Chat ID:', config.chatId);
+  console.log('Topic IDs:', config.topics);
+}
+
+// Alternativa: usar variables de entorno directamente
+const botToken = process.env.BOT_TOKEN;
+const chatId = Number(process.env.FORUM_CHAT_ID);
+```
+
+#### TypeScript con types
+
+```typescript
+import { loadCommandsConfig, loadTopicsConfig } from '@mks2508/telegram-bot-manager';
+
+// Cargar configuración de comandos
+const commandsConfig = loadCommandsConfig('./commands.json');
+console.log('Comandos:', commandsConfig.commands);
+
+// Cargar configuración de topics
+const topicsConfig = loadTopicsConfig('./topics.json');
+console.log('Topics:', topicsConfig.topics);
+```
+
+## Configuración por Entornos
+
+### Entornos Soportados
+
+- **`local`**: Desarrollo local
+- **`staging`**: Pre-producción
+- **`production`**: Producción
+
+### Archivos por Entorno
+
+Cada entorno tiene su propio archivo `.env`:
+
+```
+core/.envs/mi_bot1_bot/
+├── local.env       # Desarrollo local
+├── staging.env     # Staging
+└── production.env  # Producción
+```
+
+### Ejemplo de Configuración Multi-Entorno
+
+**`local.env`:**
+```bash
+BOT_TOKEN=123456:ABC-dev-token...
+FORUM_CHAT_ID=-1001234567890
+ENVIRONMENT=local
+```
+
+**`staging.env`:**
+```bash
+BOT_TOKEN=789012:DEF-staging-token...
+FORUM_CHAT_ID=-1009876543210
+ENVIRONMENT=staging
+```
+
+**`production.env`:**
+```bash
+BOT_TOKEN=345678:GHI-prod-token...
+FORUM_CHAT_ID=-1005555555555
+ENVIRONMENT=production
+```
+
+### Cambiar de Entorno
+
+```bash
+# Usar bot en entorno local (por defecto)
+tbm bootstrap --bot mi_bot1_bot
+
+# Especificar entorno
+tbm bootstrap --bot mi_bot1_bot -e staging
+tbm bootstrap --bot mi_bot1_bot -e production
+```
+
+## Validación
+
+### Validar commands.json
+
+```bash
+# Usar la CLI para validar y aplicar comandos
+tbm configure commands mi_bot1_bot
+```
+
+### Validar topics.json
+
+```bash
+# Usar la CLI para validar y crear topics
+tbm topics create mi_bot1_bot -1001234567890
+```
+
+### Validar variables de entorno
+
+```typescript
+import { EnvManager } from '@mks2508/telegram-bot-manager';
+
+const envManager = new EnvManager();
+
+// Listar todos los bots
+const bots = envManager.listBots();
+
+// Verificar si un bot existe
+const exists = envManager.botExists('mi_bot1_bot');
+
+// Obtener configuración
+const config = envManager.getBotConfig('mi_bot1_bot', 'local');
+
+if (!config) {
+  console.error('Configuración no encontrada');
+}
+```
+
+## Buenas Prácticas
+
+### 1. Separar Entornos
+
+Nunca uses las mismas credenciales en producción y desarrollo:
+
+```bash
+# ❌ MAL
+core/.envs/mi_bot/local.env      # Mismas credenciales
+
+# ✅ BIEN
+core/.envs/mi_bot/local.env      # Credenciales de desarrollo
+core/.envs/mi_bot/production.env # Credenciales de producción
+```
+
+### 2. Usar Descriptivos Claros
+
+```json
+// ❌ MAL
+{ "command": "st", "description": "st" }
+
+// ✅ BIEN
+{ "command": "start", "description": "Inicia el bot y muestra el menú principal" }
+```
+
+### 3. Colores de Topics Consistentes
+
+```json
+// ✅ BIEN: Paleta de colores coherente
+{
+  "topics": [
+    { "name": "General", "iconColor": 0x6FB9F0 },    // Azul
+    { "name": "Control", "iconColor": 0xE66767 },    // Rojo
+    { "name": "Logs", "iconColor": 0x49D683 },       // Verde
+    { "name": "Config", "iconColor": 0xE88D48 }      // Naranja
+  ]
+}
+```
+
+### 4. No Incluir .env en Git
+
+```text
+# Siempre ignorar archivos de entorno
+core/.envs/
+*.env
+*.env.local
+```
+
+### 5. Documentar Variables Custom
+
+Si agregas variables personalizadas, documenta su propósito:
+
+```bash
+# Custom: Analytics tracking ID
+ANALYTICS_ID=UA-12345678-1
+```
+
+## Troubleshooting
+
+### Error: "Bot not found"
+
+**Problema:** El bot no está configurado en `.envs/`.
+
+**Solución:**
+```bash
+# Verificar bots configurados
+tbm bot list
+
+# Agregar bot con bootstrap
+tbm bootstrap
+```
+
+### Error: "Invalid command format"
+
+**Problema:** Formato inválido en `commands.json`.
+
+**Solución:**
+- Verificar que `command` no incluya `/`
+- Verificar que `description` tenga máximo 256 caracteres
+- Validar JSON con `jq`:
+
+```bash
+cat commands.json | jq .
+```
+
+### Error: "Topic creation failed"
+
+**Problema:** El chat no es un foro o el token es inválido.
+
+**Solución:**
+- Verificar que el chat sea un foro (no un grupo normal)
+- Verificar que el bot sea administrador del foro
+- Validar que `BOT_TOKEN` sea correcto
+
+## Recursos Adicionales
+
+- [BotFather](https://t.me/BotFather) - Crear y configurar bots
+- [my.telegram.org](https://my.telegram.org) - Obtener API credentials
+- [Telegram API Docs](https://core.telegram.org/bots/api) - Documentación oficial

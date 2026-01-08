@@ -1,0 +1,164 @@
+---
+title: Inicio Rápido
+description: Crea tu primer bot de Telegram en 5 minutos con Telegram Bot Manager
+---
+
+# Inicio Rápido
+
+¡Pon tu primer bot de Telegram en marcha en solo unos minutos!
+
+## Lista de Verificación de Prerrequisitos
+
+Antes de comenzar, asegúrate de tener:
+
+- [x] Cuenta de Telegram
+- [x] `api_id` y `api_hash` de [my.telegram.org](https://my.telegram.org)
+- [x] Telegram Bot Manager instalado ([Instalación](/docs/introduccion/instalacion))
+
+## Opción 1: CLI (Más Rápido)
+
+El comando interactivo `bootstrap` te guía a través de toda la configuración:
+
+```bash
+npx @mks2508/telegram-bot-manager bootstrap
+```
+
+### Qué Hace Bootstrap
+
+El comando bootstrap automatiza 4 fases:
+
+<Steps>
+  **Paso 1: Creación del Bot**
+
+  - Crea un nuevo bot vía @BotFather
+  - Establece el nombre y username del bot
+  - Recupera el token del bot
+  - Guarda el token en tu archivo `.env`
+
+  **Paso 2: Configuración de Grupo**
+
+  - Crea un supergrupo para tu bot
+  - Lo convierte en foro (opcional)
+  - Agrega tu bot como admin
+
+  **Paso 3: Creación de Topics**
+
+  - Crea topics de foro (General, Control, Logs, etc.)
+  - Configura colores e iconos de topics
+  - Guarda IDs de topics en `.env`
+
+  **Paso 4: Configuración**
+
+  - Establece comandos del bot vía @BotFather
+  - Configura descripción y texto "acerca de" del bot
+  - Crea archivo de entorno con todas las variables
+</Steps>
+
+### Opciones de Bootstrap
+
+```bash
+# Inicio rápido con valores por defecto
+npx @mks2508/telegram-bot-manager bootstrap --auto
+
+# Usar bot existente
+npx @mks2508/telegram-bot-manager bootstrap --reuse
+
+# Omitir creación de topics
+npx @mks2508/telegram-bot-manager bootstrap --skip-topics
+
+# Especificar entorno
+npx @mks2508/telegram-bot-manager bootstrap --environment production
+```
+
+<Callout type="info">
+**Configuración Primera Vez**
+
+La primera vez que ejecutes cualquier comando de Telegram Bot Manager, se te solicitará:
+- Tu número de teléfono
+- Código de verificación (enviado vía Telegram)
+- Contraseña de dos factores (si está habilitada)
+
+Esto crea un archivo de sesión en `~/.mks-telegram-bot/session.txt` para uso futuro.
+</Callout>
+
+## Opción 2: Biblioteca
+
+Para control programático, usa la biblioteca:
+
+```typescript
+import { BootstrapClient, BotFatherManager } from '@mks2508/telegram-bot-manager'
+
+async function crearMiBot() {
+  // 1. Inicializar cliente
+  const client = new BootstrapClient({
+    apiId: 12345, // Tu api_id
+    apiHash: 'tu-api-hash'
+  })
+
+  // 2. Autenticarse (solo primera vez)
+  await client.ensureAuthorized()
+
+  // 3. Crear bot vía BotFather
+  const botFather = new BotFatherManager(client)
+  const result = await botFather.createBot({
+    botName: 'Mi Bot Increíble',
+    botUsername: 'mi_bot_increible'
+  })
+
+  console.log('¡Bot creado exitosamente!')
+  console.log('Token:', result.token)
+  console.log('Username:', result.username)
+  console.log('Link:', result.link)
+
+  return result
+}
+
+crearMiBot()
+```
+
+## Verifica Tu Bot
+
+Después de la creación, verifica que tu bot está funcionando:
+
+```bash
+# Listar todos los bots configurados
+npx @mks2508/telegram-bot-manager bot list
+
+# Ver detalles del bot
+npx @mks2508/telegram-bot-manager bot info mi_bot_increible
+
+# Inicia una conversación con tu bot
+# https://t.me/mi_bot_increible
+```
+
+## ¿Qué Sigue?
+
+¡Felicitaciones! Ahora tienes un bot de Telegram funcionando. Esto es lo que puedes hacer a continuación:
+
+- [**Guía Crear Primer Bot**](/docs/guias/crear-primer-bot) - Tutorial completo
+- [**Conceptos Clave**](/docs/conceptos-clave) - Entiende cómo funciona
+- [**Configuración Multi-Bot**](/docs/guias/configuracion-multi-bot) - Gestiona múltiples bots
+- [**Referencia de CLI**](/docs/referencia-cli) - Explora todos los comandos
+- [**Referencia de Biblioteca**](/docs/referencia-biblioteca) - Documentación de API
+
+## Solución de Problemas
+
+### "Sin respuesta de BotFather"
+
+- Verifica tu conexión a internet
+- Asegúrate de estar autenticado
+- Intenta `/cancel` en @BotFather para reiniciar el estado
+
+### "Autenticación fallida"
+
+- Verifica que tu número de teléfono sea correcto
+- Verifica que recibiste el código de verificación
+- Asegúrate de que la contraseña de dos factores sea correcta (si está habilitada)
+
+### "Username no disponible"
+
+- Los usernames de bots deben terminar en `bot`
+- Prueba con un username diferente
+- Usa `checkUsernameAvailable()` primero
+
+Para más ayuda, consulta [Solución de Problemas](/docs/apendice/solucion-de-problemas).
