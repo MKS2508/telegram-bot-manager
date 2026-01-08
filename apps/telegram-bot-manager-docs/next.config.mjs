@@ -7,10 +7,13 @@ const config = {
   reactStrictMode: true,
 
   // GitHub Pages configuration
+  basePath: '/telegram-bot-manager',
   output: 'export',
   images: {
     unoptimized: true,
   },
+  // Ensure trailing slash for GitHub Pages
+  trailingSlash: true,
 };
 
 export default withMDX(config);
