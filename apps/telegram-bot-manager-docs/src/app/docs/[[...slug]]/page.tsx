@@ -1,7 +1,8 @@
-import { getPageImage, source } from '@/lib/source';
+import { getPageImage, source, getRawMarkdownContent } from '@/lib/source';
 import { DocsBody, DocsDescription, DocsPage, DocsTitle } from 'fumadocs-ui/layouts/docs/page';
 import { notFound } from 'next/navigation';
 import { getMDXComponents } from '@/mdx-components';
+import { MarkdownActions } from '@/components/markdown-actions';
 import type { Metadata } from 'next';
 import { createRelativeLink } from 'fumadocs-ui/mdx';
 
@@ -11,9 +12,23 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
   if (!page) notFound();
 
   const MDX = page.data.body;
+  const markdownContent = await getRawMarkdownContent(page);
 
   return (
-    <DocsPage toc={page.data.toc} full={page.data.full}>
+    <DocsPage
+      toc={page.data.toc}
+      full={page.data.full}
+      tableOfContent={{
+        header: (
+          <div className="mb-4">
+            <h3 className="text-xs font-semibold text-fd-muted-foreground uppercase">
+              Actions
+            </h3>
+            <MarkdownActions content={markdownContent} title={page.data.title} locale="es" />
+          </div>
+        ),
+      }}
+    >
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
       <DocsBody>

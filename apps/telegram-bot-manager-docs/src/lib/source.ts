@@ -32,3 +32,13 @@ export async function getLLMText(page: InferPageType<typeof source>) {
 
 ${processed}`;
 }
+
+export async function getRawMarkdownContent(
+  page: InferPageType<typeof source> | InferPageType<typeof sourceEn>
+) {
+  const processed = await page.data.getText('processed');
+
+  return `# ${page.data.title}
+
+${processed}`;
+}
