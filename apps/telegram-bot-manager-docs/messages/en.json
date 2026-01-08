@@ -1,0 +1,9 @@
+{
+  "nav": {
+    "gettingStarted": "Getting Started",
+    "coreConcepts": "Core Concepts",
+    "libraryReference": "Library Reference",
+    "cliReference": "CLI Reference",
+    "guides": "Guides"
+  }
+}
