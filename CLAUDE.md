@@ -4,247 +4,258 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**telegram-bot-manager** is a Telegram Bot management library in TypeScript, using GramJS/Telegraf. It automates bot creation, management, and bot/group setups. This is a Bun-based monorepo for npm packages.
+**@mks2508/telegram-bot-manager** is a TypeScript library AND CLI for automating Telegram bot management via BotFather. It uses GramJS (MTProto) to interact with Telegram's protocol directly, enabling automation of tasks not possible with the Bot API alone.
 
-## CRITICAL: Development Guidelines
+### Dual Purpose
 
-**ALL development MUST follow the rules in `MUST-FOLLOW-GUIDELINES.md`**
+1. **CLI** (via npx): `npx @mks2508/telegram-bot-manager bootstrap`
+2. **Library** (via import): `import { BotFatherManager } from '@mks2508/telegram-bot-manager'`
 
-Key rules from MUST-FOLLOW-GUIDELINES.md:
+### Core Capabilities
 
-### 1. JSDoc Completo Profesional
-- ALL exported functions, classes, methods, interfaces, types, and constants MUST have complete JSDoc
-- Required tags: `@description` (implicit), `@param`, `@returns`, `@example` (for public functions), `@throws`, `@see`
+1. **BotFather Automation** (`BotFatherManager`): Create bots, set commands, configure descriptions/about text, retrieve tokens
+2. **Group/Forum Management** (`GroupManager`): Create supergroups, convert to forums, manage admin rights
+3. **Topic Management** (`TopicManager`): Create/delete forum topics, manage topic configurations
+4. **Environment Management** (`EnvManager`): Multi-bot configuration with .env file generation
+5. **Interactive Bootstrap** (`BootstrapState`): Guided setup workflow for complete bot environment configuration
 
-### 2. Logging - NUNCA console.log
-```typescript
-// CORRECTO
-import { createLogger } from 'mks2508/utils/logger';
-const log = createLogger('MyComponent');
-log.info('Started');
-log.success('Completed');
-
-// INCORRECTO
-console.log('Started');
-```
-
-### 3. Result Pattern - SIEMPRE
-```typescript
-import { ok, tryCatch, type Result } from 'mks2508/utils/result';
-import { createAppError, AppErrorCode } from 'mks2508/utils/result';
-
-async function fetchData(url: string): Promise<Result<string, AppError>> {
-  const result = await tryCatch(async () => fetch(url), AppErrorCode.NetworkError);
-  if (result.isErr()) {
-    return createAppError(AppErrorCode.NetworkError, `Failed to fetch from ${url}`, result.error);
-  }
-  return ok(result.value);
-}
-```
-
-### 4. Nomenclatura - Prefijo I
-- Interfaces: `IOptions`, `ICallback` (with prefix I)
-- Types: `Options`, `ErrorCode` (no prefix)
-
-### 5. Barrel Exports - SIEMPRE
-- Every folder with multiple files MUST have an `index.ts` barrel export
-
-### 6. Async/Await - Preferencia
-- Prefer async/await over Promise chaining
-
-## Monorepo Stack
-
-| Tool | Version/Config | Use |
-|------|----------------|-----|
-| **Runtime** | Bun v1.1.43+ | Package manager + runtime |
-| **Bundling** | Rolldown v1.0.0-beta.58 | Package builds |
-| **Type Checking** | TSGO v7.0.0-dev (@typescript/native-preview) | TypeScript compiler |
-| **Linting** | Oxlint v0.11.1 | Fast linting (OxC-based) |
-| **Formatting** | Prettier v3.4.2 + organize-imports | Code formatting |
-| **Validation** | Arktype | Schema validation |
-| **Versioning** | Changesets v2.27.11 | Package versioning |
-| **Logging** | @mks2508/better-logger v4.0.0 | Structured logging |
-| **Error Handling** | @mks2508/no-throw v0.1.0 | Result pattern |
-
-## Commands
-
-```bash
-# Development - all workspaces
-bun run dev          # Start dev mode for all packages
-
-# Build - all workspaces
-bun run build        # Build all packages
-
-# Type checking
-bun run typecheck    # Type check all packages (TSGO)
-
-# Linting (Oxlint only - no ESLint)
-bun run lint         # Run oxlint
-bun run lint:fix     # Auto-fix oxlint issues
-
-# Formatting (Prettier)
-bun run format       # Format all files
-bun run format:check # Check formatting
-
-# Clean everything
-bun run clean        # Remove node_modules, dist, .turbo
-
-# Changesets (versioning)
-bun run changeset              # Create a changeset
-bun run changeset:version      # Apply changesets and bump versions
-bun run changeset:publish      # Publish packages to npm
-```
-
-## Monorepo Structure
-
-```
-├── core/
-│   └── packages/
-│       ├── utils/              # Shared utilities package
-│       │   ├── src/
-│       │   │   ├── logger.ts   # Logging wrapper (@mks2508/better-logger)
-│       │   │   ├── result.ts   # Result wrapper (@mks2508/no-throw)
-│       │   │   └── index.ts    # Barrel export
-│       │   ├── rolldown.config.ts
-│       │   └── package.json
-│       └── main/               # Main library package
-│           ├── src/
-│           │   ├── types/      # Domain types with barrel export
-│           │   ├── utils/      # Local utilities with barrel export
-│           │   └── index.ts    # Main export
-│           ├── rolldown.config.ts
-│           └── package.json    # Depends on utils via workspace:*
-└── apps/
-    └── example/                # Example app
-        └── package.json        # Depends on utils and main via workspace:*
-```
-
-**Workspace Pattern:**
-- Packages in `core/packages/*` and `apps/*` are auto-discovered via Bun workspaces
-- Internal dependencies use `"mks2508/package": "workspace:*"`
-- Root `package.json` defines shared devDependencies
+---
 
 ## Package Structure
 
-Every package follows this structure:
-
 ```
-core/packages/main/
-├── src/
-│   ├── utils/               # Local utilities
-│   │   └── index.ts         # Barrel export
-│   ├── types/               # Domain types
-│   │   ├── *.types.ts       # Specific types
-│   │   ├── constants.ts     # Constants
-│   │   └── index.ts         # Barrel export
-│   ├── *.ts                 # Main source
-│   └── index.ts             # Main export
-├── dist/                    # Build output
-├── package.json
-├── rolldown.config.ts
-└── tsconfig.json
-```
-
-## Shared Utilities
-
-The `mks2508/utils` package provides shared wrappers:
-
-### Logger (`mks2508/utils/logger`)
-
-Wrapper around `@mks2508/better-logger` with preset configured:
-```typescript
-import { createLogger } from 'mks2508/utils/logger';
-
-const log = createLogger('ComponentName');
-log.info('Message');
-log.success('Success!');
-```
-
-### Result (`mks2508/utils/result`)
-
-Wrapper around `@mks2508/no-throw` with domain-specific error codes:
-```typescript
-import { ok, tryCatch, createAppError, type Result } from 'mks2508/utils/result';
-
-const result: Result<string> = ok('success');
-const error = createAppError(AppErrorCode.NetworkError, 'Failed to fetch');
+telegram-bot-manager/
+├── core/packages/main/          # Main & only package: @mks2508/telegram-bot-manager
+│   ├── src/
+│   │   ├── index.ts             # Library exports
+│   │   ├── client.ts            # BootstrapClient (GramJS wrapper)
+│   │   ├── bot-father/          # BotFather automation
+│   │   │   ├── index.ts         # BotFatherManager
+│   │   │   ├── message-handler.ts
+│   │   │   ├── button-handler.ts
+│   │   │   ├── parsers.ts
+│   │   │   └── logger.ts
+│   │   ├── group-manager.ts     # GroupManager
+│   │   ├── topic-manager.ts     # TopicManager
+│   │   ├── env-manager.ts       # EnvManager
+│   │   ├── bootstrap-state.ts   # BootstrapState
+│   │   ├── config/              # JSON configs (commands, topics)
+│   │   ├── types/               # TypeScript types
+│   │   └── cli/                 # CLI code (bundled separately)
+│   │       ├── index.ts         # CLI entry point
+│   │       ├── commands/        # bootstrap, bot, configure, topics
+│   │       └── utils/           # CLI utilities (logger, spinner, helpers)
+│   ├── dist/
+│   │   ├── index.js             # Library (ESM)
+│   │   ├── index.d.ts           # Type declarations
+│   │   └── bin/cli.js           # Bundled CLI (works with Node & Bun)
+│   ├── package.json
+│   ├── tsconfig.build.json
+│   └── README.md
+├── .changeset/                   # Changesets config
+└── package.json                  # Root (monorepo config)
 ```
 
-## Tool Configuration
+---
 
-### TypeScript/TSGO (`tsconfig.json`)
-- Target: ES2022, Module: ESNext
-- Strict mode enabled
-- `moduleResolution: "bundler"`
-- Key options: `verbatimModuleSyntax: true`, `declaration: true`
-- Compiler: TSGO (@typescript/native-preview) for faster type checking
-- Relaxed options: `noImplicitReturns: false`, `noUncheckedIndexedAccess: false`, `exactOptionalPropertyTypes: false`
+## Commands
 
-### Oxlint (`oxlint.json`)
-- Categories: `correctness`, `suspicious`, `perf`, `style` -> "warn"
-- `restriction` -> "off"
-- Env: `node`, `es2021`
-- Ignores: `node_modules`, `dist`, `build`, `.turbo`, `coverage`
+### Build & Development
 
-### Prettier
-- Default config used (no .prettierrc found)
-- Plugin: `prettier-plugin-organize-imports`
+```bash
+# Root level
+bun install                       # Install dependencies
+bun run build                     # Build library + CLI
+bun run typecheck                 # Type check (tsgo)
+bun run lint                      # Lint (oxlint)
 
-### Rolldown Build Config
+# Package level
+cd core/packages/main
+bun run build                     # tsgo + bun build CLI
+bun run build:lib                 # Library only (tsgo)
+bun run build:cli                 # CLI bundle only
+```
 
-**Utils package** (`core/packages/utils/rolldown.config.ts`):
-- Multiple entry points: main `./src/index.ts`, `./src/logger.ts`, `./src/result.ts`
-- ESM format with sourcemaps
-- External: `@mks2508/better-logger`, `@mks2508/no-throw`
+### CLI Usage
 
-**Main package** (`core/packages/main/rolldown.config.ts`):
-- Dual output: ESM (`./dist/index.js`) and CJS (`./dist/index.cjs`)
-- External: `mks2508/utils`
-- Named exports with sourcemaps
+```bash
+# Via npx (after publishing)
+npx @mks2508/telegram-bot-manager bootstrap
+npx @mks2508/telegram-bot-manager bot list
+npx @mks2508/telegram-bot-manager configure commands mybot
 
-## Validation (Arktype)
+# Direct execution (development)
+node dist/bin/cli.js --help
+bun dist/bin/cli.js bootstrap
+```
 
-Schema validation using Arktype:
-```typescript
-import { type } from 'arktype';
+### Publishing
 
-export const OptionsSchema = type({
-  url: 'string',
-  timeout: 'number.optional',
-});
+```bash
+bunx changeset                    # Create changeset
+bunx changeset version            # Apply versions
+npm publish --access public       # Publish to npm
+```
 
-const result = OptionsSchema(options);
-if (result instanceof type.errors) {
-  return err(result.summary());
+---
+
+## Build Configuration
+
+### package.json (key fields)
+
+```json
+{
+  "name": "@mks2508/telegram-bot-manager",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "telegram-bot-manager": "./dist/bin/cli.js",
+    "tbm": "./dist/bin/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  }
 }
 ```
 
-## Workspace Dependencies
+### Build Scripts
 
-When adding a new package dependency:
+- **build:lib**: `tsgo -p tsconfig.build.json` - Compiles library + types
+- **build:cli**: `bun build ./src/cli/index.ts --outfile ./dist/bin/cli.js --target node --minify` - Bundles CLI for Node.js
 
-1. For shared packages: Add to appropriate `core/packages/*/package.json`
-2. For workspace deps: Use `"mks2508/name": "workspace:*"`
-3. For external deps: Add to root `package.json` devDependencies if used across multiple packages
+The CLI is bundled separately because:
+1. Includes all dependencies (no ESM resolution issues)
+2. Works with both Node.js and Bun
+3. Single file (~1.6MB) for easy distribution
 
-```bash
-bun install              # Install/resolves workspace dependencies
+---
+
+## Core Architecture
+
+### Key Classes
+
+**`BootstrapClient`** (`client.ts`)
+- Wraps GramJS `TelegramClient` with session management
+- Handles user authorization (phone, code, 2FA)
+- Session persistence to `~/.mks-telegram-bot/session.txt`
+
+**`BotFatherManager`** (`bot-father/index.ts`)
+- Automates @BotFather via private messages
+- Key methods: `createBot()`, `listBots()`, `getAllBotsWithTokens()`, `setCommands()`
+
+**`GroupManager`** (`group-manager.ts`)
+- Creates supergroups via `channels.CreateChannel`
+- Converts to forums, promotes bots to admin
+
+**`TopicManager`** (`topic-manager.ts`)
+- Creates forum topics via Bot API
+- Default topics: General, Control, Logs
+
+**`EnvManager`** (`env-manager.ts`)
+- Multi-bot `.env` file management
+- Structure: `core/.envs/{botUsername}/{environment}.env`
+
+### BotFather Automation Pattern
+
+```typescript
+async exampleOperation() {
+  this.messageHandler.setupListener()
+  await this.messageHandler.sleep(500)
+
+  await this.messageHandler.sendMessage('/command')
+  await this.messageHandler.sleep(2000)
+
+  const response = await this.messageHandler.waitForResponse(10000)
+  // Parse response, click buttons, send replies...
+
+  this.messageHandler.removeListener()
+  return { success: true }
+}
 ```
 
-## Build Output Patterns
+---
 
-- **Rolldown**: Generates JS + sourcemaps, separate `tsgo --emitDeclarationOnly` for types
-- Always ESM-first, CJS as optional compatibility layer (for main package)
+## CLI Architecture
 
-## Pre-Commit Checklist
+The CLI (`src/cli/`) is structured as:
 
-Before committing code:
-- [ ] All new code has complete JSDoc
-- [ ] No `console.log/debug/error/info/warn`
-- [ ] Everything that can fail uses `Result<T, E>`
-- [ ] Interfaces have `I` prefix
-- [ ] Barrel exports in all folders
-- [ ] Async/await instead of Promise chaining
-- [ ] `bun run typecheck` passes
-- [ ] `bun run lint` passes
-- [ ] `bun run format` applied
+- **index.ts**: Commander.js entry point with shebang
+- **commands/**: Individual command handlers
+  - `bootstrap.ts`: Complete bot setup wizard
+  - `bot.ts`: Bot management (list, use, info, delete, migrate)
+  - `configure.ts`: BotFather configuration (commands, description, about, name)
+  - `topics.ts`: Forum topic creation
+- **utils/**: CLI-specific utilities
+  - `logger.ts`: better-logger wrapper with spinner support
+  - `spinner-writer.ts`: Custom ora integration
+  - `helpers.ts`: API credentials, env parsing
+  - `names.ts`: Random bot name generators
+
+### CLI Imports
+
+CLI commands import from relative paths (not package index):
+```typescript
+// In src/cli/commands/bootstrap.ts
+import { BootstrapClient } from '../../client.js'
+import { BotFatherManager } from '../../bot-father/index.js'
+```
+
+---
+
+## Development Guidelines
+
+### Logging
+
+```typescript
+// Library code
+import logger, { component } from '@mks2508/better-logger'
+const log = component('BotFather')
+log.info('Message')
+
+// CLI code
+import { cliLogger } from '../utils/logger.js'
+cliLogger.success('Done!')
+```
+
+### Type Conventions
+
+- Interfaces: `IOptions`, `IResult` (with I prefix)
+- Types: `Environment`, `ErrorCode` (no prefix)
+
+### JSDoc
+
+All exports should have JSDoc with `@param`, `@returns`, `@example`.
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+**"No response from BotFather"**
+- Check GramJS connection
+- Increase timeout in `waitForResponse()`
+- Try `/cancel` in Telegram to reset BotFather state
+
+**"CLI not working with Node.js"**
+- Ensure CLI is built with `--target node`
+- Check shebang is `#!/usr/bin/env node`
+
+**"Module resolution errors"**
+- CLI uses direct imports, not package index
+- Library exports from `src/index.ts`
+
+### GramJS Notes
+
+- Uses `@ts-ignore` for incomplete type definitions
+- BigInteger handling with `big-integer` package
+- Session cached at `~/.mks-telegram-bot/session.txt`
+
+---
+
+## License
+
+MIT

@@ -9,7 +9,6 @@ CLI & Library for automating Telegram BotFather operations via GramJS MTProto.
 - **Manage forum topics** (create, delete, configure)
 - **Multi-bot management** with environment configs
 - **Interactive CLI** with spinners and prompts
-- **Works with Node.js and Bun**
 
 ## Installation
 
@@ -109,27 +108,114 @@ await envManager.createEnv('mybot123bot', 'local', {
 })
 ```
 
+## API Reference
+
+### BootstrapClient
+
+GramJS client wrapper for Telegram MTProto operations.
+
+```typescript
+const client = new BootstrapClient({ apiId, apiHash })
+await client.ensureAuthorized() // Interactive login
+await client.disconnect()
+```
+
+### BotFatherManager
+
+Automate @BotFather interactions.
+
+```typescript
+const botFather = new BotFatherManager(client)
+
+// List bots
+const bots = await botFather.listBots()
+
+// Create bot
+const result = await botFather.createBot({ botName, botUsername })
+
+// Get all bots with tokens
+const botsWithTokens = await botFather.getAllBotsWithTokens()
+
+// Configure bot
+await botFather.setCommands(username, commands)
+await botFather.setDescription(username, description)
+await botFather.setAboutText(username, aboutText)
+await botFather.setName(username, displayName)
+```
+
+### GroupManager
+
+Create and manage Telegram groups/forums.
+
+```typescript
+const groupManager = new GroupManager(client)
+
+// Get user's forums
+const forums = await groupManager.getUserForums()
+
+// Create supergroup
+const result = await groupManager.createSupergroup({
+  title: 'My Group',
+  forumMode: true,
+})
+
+// Add bot as admin
+await groupManager.addBotAsAdmin(chatId, botUsername, {
+  canManageTopics: true,
+  canDeleteMessages: true,
+})
+
+// Get topics
+const topics = await groupManager.getForumTopics(chatId)
+```
+
+### TopicManager
+
+Create forum topics using Bot API.
+
+```typescript
+const topicManager = new TopicManager(botToken)
+
+// Create single topic
+const result = await topicManager.createTopic(chatId, 'Logs')
+
+// Create multiple topics
+const results = await topicManager.createTopics(chatId, [
+  'General',
+  'Logs',
+  'Control',
+  'Config',
+])
+```
+
+### EnvManager
+
+Manage multi-bot environment configurations.
+
+```typescript
+const envManager = new EnvManager()
+
+// List configured bots
+const bots = envManager.listBots()
+
+// Get/set active bot
+const active = envManager.getActiveBot()
+await envManager.setActiveBot('mybot123bot')
+
+// CRUD operations
+await envManager.createEnv('mybot', 'local', { botToken, ... })
+const config = await envManager.readEnv('mybot', 'local')
+await envManager.updateEnv('mybot', 'local', { ... })
+await envManager.deleteBot('mybot')
+
+// Migrate old .env files
+await envManager.migrateOldEnvs()
+```
+
 ## Requirements
 
-- Node.js >= 18.0.0 (or Bun)
+- Node.js >= 18.0.0
 - Telegram API credentials from https://my.telegram.org
-
-## Development
-
-```bash
-# Clone
-git clone https://github.com/MKS2508/telegram-bot-manager.git
-cd telegram-bot-manager
-
-# Install
-bun install
-
-# Build
-bun run build
-
-# Test CLI
-node core/packages/main/dist/bin/cli.js --help
-```
 
 ## License
 
