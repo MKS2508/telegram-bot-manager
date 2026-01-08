@@ -819,7 +819,11 @@ async function handleListBots(options: IBootstrapOptions): Promise<void> {
       cliLogger.info('')
     }
 
-    await client.disconnect()
+    try {
+      await client.disconnect()
+    } catch {
+      // Ignore disconnect errors
+    }
   } catch (error) {
     spinner.stop()
     if (shouldMuteGramJS && client) {
@@ -832,6 +836,14 @@ async function handleListBots(options: IBootstrapOptions): Promise<void> {
     cliLogger.error('Failed to fetch bots')
     if (error instanceof Error) {
       cliLogger.error(`  ${error.message}`)
+    }
+    // Ensure disconnect even on error
+    if (client) {
+      try {
+        await client.disconnect()
+      } catch {
+        // Ignore
+      }
     }
   } finally {
     if (shouldMuteGramJS && client !== null) {

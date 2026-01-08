@@ -116,16 +116,43 @@ export class BootstrapClient {
       return
     }
 
+    this.isConnected = false
+
+    // Temporarily capture unhandled rejections from GramJS internal operations
+    const suppressedErrors: Error[] = []
+    const errorHandler = (error: Error) => {
+      if (error?.message?.includes('TIMEOUT') || error?.message?.includes('connection')) {
+        suppressedErrors.push(error)
+      }
+    }
+    process.on('unhandledRejection', errorHandler)
+
     try {
       // GramJS disconnect can throw TIMEOUT error, we handle it gracefully
+      // Use Promise.race with a timeout and catch any errors
+      const disconnectPromise = this.client.disconnect().catch(() => {})
       await Promise.race([
-        this.client.disconnect(),
-        new Promise((resolve) => setTimeout(resolve, 5000)), // 5s timeout
+        disconnectPromise,
+        new Promise((resolve) => setTimeout(resolve, 3000)), // 3s timeout
       ])
     } catch {
       // Ignore disconnect errors (TIMEOUT, connection already closed, etc.)
     }
-    this.isConnected = false
+
+    // Force cleanup any pending GramJS operations
+    try {
+      // @ts-ignore - _destroyed is internal but helps prevent lingering errors
+      if (this.client._destroyed === false) {
+        // @ts-ignore
+        this.client._destroyed = true
+      }
+    } catch {
+      // Ignore
+    }
+
+    // Wait a bit for any lingering async operations, then remove handler
+    await new Promise((resolve) => setTimeout(resolve, 500))
+    process.removeListener('unhandledRejection', errorHandler)
   }
 
   /**
