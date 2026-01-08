@@ -50,8 +50,14 @@ jobs:
           cd out
           mkdir telegram-bot-manager
           # Move all files and directories except telegram-bot-manager itself
-          for item in * .*; do
-            if [ "$item" != "." ] && [ "$item" != ".." ] && [ "$item" != "telegram-bot-manager" ]; then
+          for item in *; do
+            if [ "$item" != "telegram-bot-manager" ]; then
+              mv "$item" telegram-bot-manager/
+            fi
+          done
+          # Also move hidden files if any
+          for item in .[^.]*; do
+            if [ -e "$item" ] && [ "$item" != "." ] && [ "$item" != ".." ] && [ "$item" != ".git" ]; then
               mv "$item" telegram-bot-manager/
             fi
           done
