@@ -1,7 +1,9 @@
-import { source } from '@/lib/source';
-import { createFromSource } from 'fumadocs-core/search/server';
+// Search API no compatible con static export (GitHub Pages)
+// Redirigir a una página de búsqueda estática o eliminar
+import { NextResponse } from 'next/server';
 
-export const { GET } = createFromSource(source, {
-  // https://docs.orama.com/docs/orama-js/supported-languages
-  language: 'english',
-});
+export const dynamic = 'force-static';
+
+export async function GET() {
+  return NextResponse.json({ message: 'Search not available in static export' }, { status: 501 });
+}
