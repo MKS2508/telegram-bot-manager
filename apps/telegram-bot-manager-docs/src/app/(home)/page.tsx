@@ -90,7 +90,7 @@ export default function HomePage() {
         <div className={`transition-opacity duration-700 delay-600 ${mounted ? 'opacity-100' : 'opacity-0'}`}>
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
             <Link
-              href="/docs/introduccion/inicio-rapido"
+              href="/docs/introduccion/quick-start/"
               className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-black rounded font-medium hover:opacity-90 transition-opacity"
             >
               Get Started
@@ -98,7 +98,7 @@ export default function HomePage() {
             </Link>
             <span className="text-gray-500 dark:text-gray-500">or</span>
             <Link
-              href="/docs/introduccion"
+              href="/docs/introduccion/"
               className="text-blue-600 dark:text-blue-500 hover:underline font-medium"
             >
               Read the docs
@@ -109,19 +109,19 @@ export default function HomePage() {
         {/* Footer Links */}
         <div className={`mt-32 pt-16 border-t border-gray-200 dark:border-gray-800 transition-opacity duration-700 delay-800 ${mounted ? 'opacity-100' : 'opacity-0'}`}>
           <nav className="flex flex-wrap gap-x-8 gap-y-4 text-sm">
-            <Link href="/docs/introduccion/instalacion" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+            <Link href="/docs/introduccion/installation/" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
               Installation
             </Link>
-            <Link href="/docs/referencia-de-biblioteca" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+            <Link href="/docs/referencia-de-biblioteca/" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
               API Reference
             </Link>
-            <Link href="/docs/referencia-de-cli" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+            <Link href="/docs/referencia-de-cli/" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
               CLI Reference
             </Link>
-            <Link href="/docs/configuracion" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+            <Link href="/docs/configuracion/" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
               Configuration
             </Link>
-            <Link href="/en/docs" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+            <Link href="/en/docs/" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
               English
             </Link>
           </nav>
