@@ -155,34 +155,73 @@ export class BotFatherManager {
   }
 
   async getBotInfo(botUsername: string): Promise<IBotInfoResult> {
-    try {
-      const username = botUsername.startsWith('@') ? botUsername.slice(1) : botUsername
+    const username = botUsername.startsWith('@') ? botUsername.slice(1) : botUsername
+    debug(botFatherLogger, `getBotInfo() called for @${username}`)
 
+    try {
       this.messageHandler.setupListener()
       await this.messageHandler.sleep(500)
 
-      await this.messageHandler.sendMessage('/mybots')
-      await this.messageHandler.sleep(2000)
+      let currentPage = 1
+      let hasNextPage = true
+      let lastMessageId: number | null = null
 
-      const response = await this.messageHandler.waitForResponse(15000)
-      if (!response) {
-        this.messageHandler.removeListener()
-        return { success: false, error: 'No response from BotFather (timeout)' }
+      while (hasNextPage) {
+        debug(botFatherLogger, `getBotInfo() searching page ${currentPage} for @${username}`)
+
+        if (currentPage === 1) {
+          await this.messageHandler.sendMessage('/mybots')
+          await this.messageHandler.sleep(2000)
+        } else {
+          await this.messageHandler.sleep(1000)
+        }
+
+        const timeout = currentPage === 1 ? 10000 : 10000
+        const response = await this.messageHandler.waitForNewResponse(timeout, lastMessageId)
+        if (!response) {
+          debug(botFatherLogger, `getBotInfo() timeout waiting for page ${currentPage}`)
+          break
+        }
+
+        // @ts-ignore
+        lastMessageId = response.message?.id || null
+
+        // Try to find bot in inline keyboard buttons first
+        const botsFromButtons = parseBotsFromButtons(response)
+        const bot = botsFromButtons.find((b) => b.username === username)
+
+        if (bot) {
+          debug(botFatherLogger, `getBotInfo() found @${username} on page ${currentPage}`)
+          this.messageHandler.removeListener()
+          return { success: true, bot }
+        }
+
+        // Check if there's a next page
+        const nextButtonData = this.buttonHandler.findPaginationButtonData(response, 'Next')
+
+        if (nextButtonData) {
+          const clicked = await this.buttonHandler.clickInlineButton(response, nextButtonData)
+          if (!clicked) {
+            debug(botFatherLogger, `getBotInfo() failed to click Next button`)
+            break
+          }
+          currentPage++
+        } else {
+          debug(botFatherLogger, `getBotInfo() reached last page (page ${currentPage})`)
+          hasNextPage = false
+        }
+
+        if (currentPage > 50) {
+          debug(botFatherLogger, `getBotInfo() reached page limit (50)`)
+          break
+        }
       }
-
-      const responseText = extractMessageText(response)
-      const allBots = parseBotList(responseText)
-
-      const bot = allBots.find((b) => b.username === username)
 
       this.messageHandler.removeListener()
-
-      if (!bot) {
-        return { success: false, error: `Bot @${username} not found` }
-      }
-
-      return { success: true, bot }
+      debug(botFatherLogger, `getBotInfo() @${username} not found after ${currentPage} pages`)
+      return { success: false, error: `Bot @${username} not found` }
     } catch (error) {
+      debug(botFatherLogger, `getBotInfo() error: ${error}`)
       this.messageHandler.removeListener()
       return {
         success: false,
